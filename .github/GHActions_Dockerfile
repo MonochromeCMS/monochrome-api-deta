@@ -1,0 +1,51 @@
+ARG BASE_IMAGE=none
+
+FROM $BASE_IMAGE as builder
+
+ARG BASE_IMAGE
+ARG BUILD_DATE
+ARG IMAGE_VERSION
+ARG GIT_COMMIT
+ARG RELEASE_TAG
+
+LABEL maintainer="MonochromeCMS" \
+      org.opencontainers.image.title="Monochrome API PostgreSQL" \
+      org.opencontainers.image.authors="https://github.com/MonochromeCMS" \
+      org.opencontainers.image.url="https://github.com/MonochromeCMS/monochrome-api-postgres/pkgs/container/monochrome-api-postgres" \
+      org.opencontainers.image.source="https://github.com/MonochromeCMS/monochrome-api-postgres" \
+      org.opencontainers.image.description="This image is used to start Monochrome's API in a container with a PostgreSQL backend" \
+      base_image=$BASE_IMAGE \
+      org.opencontainers.image.vendor="MonochromeCMS" \
+      org.opencontainers.image.created=$BUILD_DATE \
+      org.opencontainers.image.version=$IMAGE_VERSION \
+      "monochrome.git_commit"=$GIT_COMMIT \
+      "monochrome.release_tag"=$RELEASE_TAG \
+      org.opencontainers.image.licenses="AGPL-3.0"
+
+WORKDIR /pipfiles
+
+# INSTALL THE BUILD DEP.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tar p7zip unrar-free xz-utils libpq-dev gcc libc-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir -U setuptools wheel
+
+# INSTALL PIPENV
+RUN set -ex && pip install pipenv --upgrade
+
+# INSTALL DEPENDENCIES
+COPY Pipfile* ./
+RUN set -ex && pipenv lock -r > req.txt && pip install -r req.txt
+
+FROM builder as final
+ENV PYTHONUNBUFFERED=1
+WORKDIR /
+
+# COPY APP SOURCE CODE
+COPY ./api /api
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+EXPOSE 3000
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["hypercorn", "api.main:app", "-b", "0.0.0.0:3000"]

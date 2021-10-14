@@ -1,0 +1,24 @@
+name: Testing
+
+on: [push, workflow_dispatch]
+
+jobs:
+  tests:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create .env
+        run: cp .env.example .env
+      - name: Pull images
+        run: docker pull docker.io/postgres:13-alpine
+      - name: Cache images
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Building the image
+        run: make build
+      - name: Setting up the test environment
+        run: make _test_setup
+      - name: Backend tests
+        run: make test_exit=1 _test
+      - name: Linting
+        run: make test_exit=1 lint

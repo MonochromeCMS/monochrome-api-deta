@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+dist/
+.env
+.venv
+env/
+venv/
+htmlcov/
+
+# Monochrome
+media/
+
+# Editors
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
