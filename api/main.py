@@ -3,19 +3,19 @@ from .config import get_settings
 
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import RedirectResponse
+from fastapi.responses import RedirectResponse
 
-from api.routers import manga, chapter, upload, user, auth, settings, autocomplete
+from .routers import auth, autocomplete, chapter, manga, settings, upload, user
 
 global_settings = get_settings()
 
-app.include_router(manga.router)
+app.include_router(auth.router)
+app.include_router(autocomplete.router)
 app.include_router(chapter.router)
+app.include_router(manga.router)
+app.include_router(settings.router)
 app.include_router(upload.router)
 app.include_router(user.router)
-app.include_router(auth.router)
-app.include_router(settings.router)
-app.include_router(autocomplete.router)
 
 
 origins = global_settings.cors_origins.split(",")

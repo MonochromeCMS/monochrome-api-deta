@@ -1,12 +1,13 @@
-from os import getenv
 import asyncio
-import asyncpg
+
+from os import getenv
+from deta import Deta
 from passlib.hash import bcrypt
 from uuid import uuid4
 
 
 async def main():
-    DB_URL = getenv("DB_URL")
+    PROJECT_KEY = getenv("DETA_PROJECT_KEY")
 
     if getenv("MONOCHROME_TEST"):
         USERNAME = "admin"
@@ -17,20 +18,23 @@ async def main():
         PASSWORD = input("Password: ")
         uuid = uuid4()
 
-    if not DB_URL:
-        raise EnvironmentError("A DB_URL is required to add an admin user")
-    else:
-        DB_URL = DB_URL.replace("+asyncpg", "")
+    if not PROJECT_KEY:
+        raise EnvironmentError("A DETA_PROJECT_KEY is required to add an admin user")
 
     hashed_password = bcrypt.hash(PASSWORD)
 
-    conn = await asyncpg.connect(DB_URL)
+    deta = Deta(PROJECT_KEY)
+    db = deta.AsyncBase("user")
 
-    query = """INSERT INTO "user" (version, id, username, hashed_password) VALUES(1, $1, $2, $3);"""
+    user = {
+        "username": USERNAME,
+        "email": None,
+        "hashed_password": hashed_password,
+        "version": 1,
+        "id": str(uuid),
+    }
 
-    await conn.execute(query, uuid, USERNAME, hashed_password)
-
-    await conn.close()
+    await db.put(user)
 
 
 asyncio.get_event_loop().run_until_complete(main())

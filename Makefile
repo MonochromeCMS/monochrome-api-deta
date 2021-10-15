@@ -9,7 +9,7 @@ user ?= `id -u`
 dir ?= `pwd`
 
 DOCKER_RUN = docker run --env-file .env --rm -v "`pwd`:/vol" -w /vol
-DOCKER_TEST_RUN = docker run --env-file .env --link monochrome-test-db:db -e DB_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres --rm
+DOCKER_TEST_RUN = docker run --env-file .env --rm
 
 .PHONY: help
 help: ## Show this help
@@ -28,7 +28,7 @@ endif
 up start:	## Run a container from the image
 ifneq ($(native),0)
 	@export `grep -v '^#' .env | xargs -d '\n'`
-	hypercorn api.main:app -b 0.0.0.0:3000
+	hypercorn main:app -b 0.0.0.0:3000 --reload
 else
 	docker run --rm --name monochrome-api -p 3000:3000 --env-file .env $(tag)
 endif
@@ -74,38 +74,6 @@ ifneq ($(native),0)
 	black ./api
 else
 	$(DOCKER_RUN) $(tag) black ./api
-endif
-
-.PHONY: revision
-.ONESHELL: revision
-revision rev: ## Create a new database revision
-	@read -p "Revision name: " rev
-ifneq ($(native),0)
-	cd api
-	alembic revision --autogenerate -m "$$rev"
-else
-	$(DOCKER_RUN) $(tag) bash -c "cd api && alembic revision --autogenerate -m '$$rev'"
-endif
-
-# Utils
-
-.PHONY: upgrade
-.ONESHELL: upgrade
-upgrade: ## Update the database
-ifneq ($(native),0)
-	cd api
-	alembic upgrade head
-else
-	$(DOCKER_RUN) $(tag) bash -c "cd api && alembic upgrade head"
-endif
-
-.PHONY: downgrade
-downgrade: ## Downgrade the database
-ifneq ($(native),0)
-	cd api
-	alembic downgrade -1
-else
-	$(DOCKER_RUN) $(tag) bash -c "cd api && alembic downgrade -1"
 endif
 
 .PHONY: secret

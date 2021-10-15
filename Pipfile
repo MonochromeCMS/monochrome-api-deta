@@ -23,11 +23,10 @@ pydantic = {extras = ["email"], version = "*"}
 fastapi_camelcase = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 passlib = {extras = ["bcrypt"], version = "*"}
-asyncpg = "*"
-sqlalchemy = "*"
 python-multipart = "*"
 pillow = ">=8.3.2"
-alembic = "*"
+deta = "*"
+aiohttp = "*"
 
 [dev-packages]
 icecream = "*"

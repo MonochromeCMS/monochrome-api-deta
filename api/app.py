@@ -8,11 +8,9 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from .models.upload import UploadSession
-
 from .exceptions import rate_limit_exceeded_handler
-from .db import engine, get_db
 from .config import get_settings
+from .models.upload import UploadSession
 
 global_settings = get_settings()
 
@@ -38,15 +36,10 @@ app.add_middleware(SlowAPIMiddleware)
 
 
 async def setup_media():
-    async for session in get_db():
-        await UploadSession.flush(session)
+    await UploadSession.flush()
 
     rmtree(path.join(global_settings.media_path, "blobs"), ignore_errors=True)
     makedirs(path.join(global_settings.media_path, "blobs"), exist_ok=True)
-
-
-async def stop_db():
-    await engine.dispose()
 
 
 @app.on_event("startup")
@@ -58,4 +51,3 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     log.info("Shutting down...")
-    await stop_db()

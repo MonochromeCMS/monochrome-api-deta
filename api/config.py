@@ -1,14 +1,13 @@
 import logging
 from functools import lru_cache
-from os import getenv
 
-from pydantic import BaseSettings, AnyUrl, Field
+from pydantic import BaseSettings, Field
 
 log = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
-    db_url: AnyUrl
+    deta_project_key: str
     cors_origins: str = ""
 
     jwt_secret_key: str
@@ -16,7 +15,7 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 60
 
     media_path: str = "/media"
-    temp_path: str = "/temp"
+    temp_path: str = "/tmp"
 
     max_page_limit: int = Field(50, gt=0)
 
