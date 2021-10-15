@@ -6,7 +6,7 @@ from aiohttp import ClientError
 from uuid import UUID, uuid4
 from fastapi.encoders import jsonable_encoder
 
-from ..deta import deta
+from ..db import deta
 from ..config import get_settings
 from ..exceptions import UnprocessableEntityHTTPException, NotFoundHTTPException
 

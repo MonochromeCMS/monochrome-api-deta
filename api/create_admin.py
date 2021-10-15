@@ -35,6 +35,7 @@ async def main():
     }
 
     await db.put(user)
+    await db.close()
 
 
 asyncio.get_event_loop().run_until_complete(main())

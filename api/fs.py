@@ -1,6 +1,6 @@
 from tempfile import TemporaryFile
 from typing import Optional, List
-from .deta import deta
+from .db import deta
 
 
 class Drive:
