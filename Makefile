@@ -94,17 +94,8 @@ endif
 .PHONY: _test_setup
 .ONESHELL: _test_setup
 _test_setup: build
-	@echo Setting up the test database...
-	@docker run -d --rm --name monochrome-test-db -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
-	@sleep 1
-	@$(DOCKER_TEST_RUN) -w /api $(tag) alembic upgrade head
 	@echo Adding the default user...
 	@$(DOCKER_TEST_RUN) -e MONOCHROME_TEST=1 $(tag) create_admin
-
-.PHONY: _test_cleanup
-_test_cleanup:
-	@echo Deleting the test database...
-	@docker stop monochrome-test-db
 
 .PHONY: _test
 .ONESHELL: _test
@@ -116,4 +107,4 @@ else
 	-$(DOCKER_TEST_RUN) -v "`pwd`/htmlcov:/html" $(tag) python -m pytest --cov api --cov-report html:/html --cov-config=/api/setup.cfg -v api
 endif
 
-test: _test_setup lint _test _test_cleanup ## Run the tests
+test: lint _test ## Run the tests

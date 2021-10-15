@@ -1,30 +1,31 @@
 # Monochrome
-Monochrome's API, implemented with a PostgreSQL backend and FS image storage.
+Monochrome's API, implemented with Deta Base and Deta Drive.
 
-Most users will prefer the Monochrome full stack, which contains the API, the frontend and the backend.
+Create a free account on [Deta](https://deta.sh) to test this out!
+
+Most users will prefer the [Monochrome full stack](https://github.com/MonochromeCMS/Monochrome), which contains the API, the frontend and the backend.
 
 ## Usage
 ### Docker
 This service is available on ghcr.io:
 ```shell
-docker pull ghcr.io/monochromecms/monochrome-api-postgres:latest
+docker pull ghcr.io/monochromecms/monochrome-api-deta:latest
 ```
 The database needs to be set up, and an admin user created:
 ```shell
-docker run                                                          \
-  -e DB_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres \
-  ghcr.io/monochromecms/monochrome-api-postgres:latest              \
+docker run                                         \
+  -e DETA_PROJECT_KEY=...                          \
+  ghcr.io/monochromecms/monochrome-api-deta:latest \
   create_admin
 ```
 Once done, the image can be launched with the required [env. vars](#environment-variables):
 ```shell
-docker run -p 3000:3000                                             \
-  -e DB_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres \
-  -e JWT_SECRET_KEY=changeMe                                        \
-  -v "$(pwd)/media:/media"                                          \
-  ghcr.io/monochromecms/monochrome-api-postgres:latest
+docker run -p 3000:3000                            \
+  -e DETA_PROJECT_KEY=...                          \
+  -e JWT_SECRET_KEY=changeMe                       \
+  ghcr.io/monochromecms/monochrome-api-deta:latest
 ```
-*The images will be saved in the media_path, so a volume is highly recommended.*
+*The images are stored on Deta Drive, they are available on the `/media` route or on the Deta Web UI.*
 ### Makefile
 A Makefile is provided with this repository, to simplify the development and usage:
 ```
@@ -32,17 +33,12 @@ help                 Show this help message
 up start             Run a container from the image, or start it natively
 # Docker utils
 build                Build image
-up-db                Start a db container
-down-db              Stop the db container
 logs                 Read the container's logs
 sh                   Open a shell in the running container
 # Dev utils
 lock                 Refresh pipfile.lock
 lint                 Lint project code
 format               Format project code
-revision rev         Create a new database revision
-upgrade              Update the database
-downgrade            Downgrade the database
 # Main utils
 secret               Generate a secret
 create_admin         Create a new admin user
@@ -73,8 +69,8 @@ make native=1 install
 
 ### Environment variables
 ```python
-# URL to the Postgres database, ex: postgresql+asyncpg://username:password@db:5432/name
-DB_URL
+# Deta project key, more info on https://deta.sh
+DETA_PROJECT_KEY
 # Comma-separated list of origins to allow for CORS, namely the origin of your frontend
 CORS_ORIGINS = ""
 
@@ -85,10 +81,8 @@ JWT_ALGORITHM = "HS256"
 # Amount of minutes a JWT will be valid for
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-# Path where the images will be stored
-MEDIA_PATH = "/media"
-# Path where temporary data will be stored
-TEMP_PATH = "/temp"
+# Path where temporary data will be stored (DON'T CHANGE THIS IN DETA MICROS)
+TEMP_PATH = "/tmp"
 
 # For pagination, the maximum of elements per request, has to be positive
 MAX_PAGE_LIMIT = 50
@@ -96,8 +90,8 @@ MAX_PAGE_LIMIT = 50
 
 ## Tools used
 * FastAPI
-* SQLAlchemy
-* Alembic
+* Deta Base
+* Deta Drive
 * Pydantic
 
 ## Progress
@@ -105,9 +99,10 @@ MAX_PAGE_LIMIT = 50
 * Documentation 🟡58%
 * OpenAPI 🟡66%
 * Cleaner code 🟡50%
-* Testing 🟠40%
+* Testing 🟠40% (I still need to use this implementation throughly)
   * Unit 🟢100%
   * Integration 🔴10%
   
 Credits:
 * Base API template: https://github.com/grillazz/fastapi-sqlalchemy-asyncpg
+* Deta documentation: https://docs.deta.sh

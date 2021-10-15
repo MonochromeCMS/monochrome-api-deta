@@ -9,11 +9,11 @@ ARG GIT_COMMIT
 ARG RELEASE_TAG
 
 LABEL maintainer="MonochromeCMS" \
-      org.opencontainers.image.title="Monochrome API PostgreSQL" \
+      org.opencontainers.image.title="Monochrome API Deta" \
       org.opencontainers.image.authors="https://github.com/MonochromeCMS" \
-      org.opencontainers.image.url="https://github.com/MonochromeCMS/monochrome-api-postgres/pkgs/container/monochrome-api-postgres" \
-      org.opencontainers.image.source="https://github.com/MonochromeCMS/monochrome-api-postgres" \
-      org.opencontainers.image.description="This image is used to start Monochrome's API in a container with a PostgreSQL backend" \
+      org.opencontainers.image.url="https://github.com/MonochromeCMS/monochrome-api-deta/pkgs/container/monochrome-api-deta" \
+      org.opencontainers.image.source="https://github.com/MonochromeCMS/monochrome-api-deta" \
+      org.opencontainers.image.description="This image is used to start Monochrome's API in a container with the Deta backend" \
       base_image=$BASE_IMAGE \
       org.opencontainers.image.vendor="MonochromeCMS" \
       org.opencontainers.image.created=$BUILD_DATE \
@@ -26,7 +26,7 @@ WORKDIR /pipfiles
 
 # INSTALL THE BUILD DEP.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends tar p7zip unrar-free xz-utils libpq-dev gcc libc-dev && \
+    apt-get install -y --no-install-recommends tar p7zip unrar-free xz-utils gcc libc-dev && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -U setuptools wheel
 

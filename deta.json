@@ -1,0 +1,36 @@
+{
+    "name": "Monochrome API",
+    "description": "Monochrome's API implemented with the Deta services",
+    "runtime": "python3.9",
+    "env": [
+        {
+            "key": "CORS_ORIGINS",
+            "description": "Comma-separated list of trusted domains",
+            "value": "",
+            "required": false
+        },
+        {
+            "key": "JWT_SECRET_KEY",
+            "description": "Secret used to sign the JWTs",
+            "required": true
+        },
+        {
+            "key": "JWT_ALGORITHM",
+            "description": "Algorithm used to sign the JWTs",
+            "value": "HS256",
+            "required": false
+        },
+        {
+            "key": "JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+            "description": "How many minutes should the JWTs last",
+            "value": "60",
+            "required": false
+        },
+        {
+            "key": "MAX_PAGE_LIMIT",
+            "description": "Maximum amount of elements per page",
+            "value": "50",
+            "required": false
+        }
+    ]
+}
