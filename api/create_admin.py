@@ -24,7 +24,7 @@ async def main():
     hashed_password = bcrypt.hash(PASSWORD)
 
     deta = Deta(PROJECT_KEY)
-    db = deta.AsyncBase("user")
+    db = deta.AsyncBase("users")
 
     user = {
         "username": USERNAME,
@@ -32,6 +32,7 @@ async def main():
         "hashed_password": hashed_password,
         "version": 1,
         "id": str(uuid),
+        "key": str(uuid),
     }
 
     await db.put(user)
