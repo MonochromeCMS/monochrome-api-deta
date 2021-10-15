@@ -16,8 +16,6 @@ jobs:
         continue-on-error: true
       - name: Building the image
         run: make build
-      - name: Setting up the test environment
-        run: make _test_setup
       - name: Backend tests
         run: make test_exit=1 _test
       - name: Linting
