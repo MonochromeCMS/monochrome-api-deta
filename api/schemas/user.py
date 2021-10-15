@@ -26,6 +26,7 @@ class UserSchema(User):
 
 class UserResponse(User):
     id: UUID = Field(title="ID", description="ID of the user")
+    version: int = Field(description="Version of the user")
 
     class Config:
         orm_mode = True
@@ -34,6 +35,7 @@ class UserResponse(User):
                 "id": "6901d7f6-c4e1-4200-9dd0-a6fccc065978",
                 "username": "user",
                 "email": "user@example.com",
+                "version": 2,
             }
         }
 

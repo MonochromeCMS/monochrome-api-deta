@@ -80,16 +80,28 @@ class TestUserResponse(BaseModelTest):
     example_data = {
         **parent.example_data,
         "id": UUID("6901d7f6-c4e1-4200-9dd0-a6fccc065978"),
+        "version": 2,
     }
     wrong_data = [
         # Missing fields
-        {},
+        {
+            "version": 2,
+        },
+        {
+            "id": UUID("6901d7f6-c4e1-4200-9dd0-a6fccc065978"),
+        },
     ]
     irregular_data = [
         # String to uuid
         {
             "id": "6901d7f6-c4e1-4200-9dd0-a6fccc065978",
-        }
+            "version": 2,
+        },
+        # String to int
+        {
+            "id": UUID("6901d7f6-c4e1-4200-9dd0-a6fccc065978"),
+            "version": "2",
+        },
     ]
 
 
