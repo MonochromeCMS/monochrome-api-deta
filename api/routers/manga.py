@@ -1,13 +1,12 @@
-import os
-import shutil
-
 from PIL import Image
 
 from uuid import UUID
+from tempfile import TemporaryFile
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status, Query, File, UploadFile, BackgroundTasks
 
 from .auth import is_connected, auth_responses
+from ..fs import media, path
 from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter
@@ -40,7 +39,6 @@ post_responses = {
 async def create_manga(payload: MangaSchema):
     manga = Manga(**payload.dict())
     await manga.save()
-    os.mkdir(os.path.join(settings.media_path, str(manga.id)))
     return manga
 
 
@@ -108,7 +106,7 @@ delete_responses = {
 @router.delete("/{id}", dependencies=[Depends(is_connected)], responses=delete_responses)
 async def delete_manga(id: UUID):
     manga = await Manga.find(id, NotFoundHTTPException("Manga not found"))
-    shutil.rmtree(os.path.join(settings.media_path, str(manga.id)))
+    media.rmtree(str(manga.id))
     return await manga.delete()
 
 
@@ -131,7 +129,10 @@ async def update_manga(payload: MangaSchema, id: UUID):
 
 def save_cover(manga_id: UUID, file: File):
     im = Image.open(file)
-    im.convert("RGB").save(os.path.join(settings.media_path, str(manga_id), "cover.jpg"))
+    with TemporaryFile() as f:
+        im.convert("RGB").save(f, "JPEG")
+        f.seek(0)
+        media.put(path.join(str(manga_id), "cover.jpg"), f)
 
 
 put_cover_responses = {

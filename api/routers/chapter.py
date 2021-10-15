@@ -1,11 +1,9 @@
-import os
-import shutil
-
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 
 from .auth import is_connected, auth_responses
+from ..fs import media, path
 from ..exceptions import NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter
@@ -65,7 +63,7 @@ delete_responses = {
 @router.delete("/{id}", dependencies=[Depends(is_connected)], responses=delete_responses)
 async def delete_chapter(id: UUID):
     chapter = await Chapter.find(id, NotFoundHTTPException("Chapter not found"))
-    shutil.rmtree(os.path.join(settings.media_path, str(chapter.manga_id), str(chapter.id)), True)
+    media.rmtree(path.join(str(chapter.manga_id), str(chapter.id)))
     return await chapter.delete()
 
 

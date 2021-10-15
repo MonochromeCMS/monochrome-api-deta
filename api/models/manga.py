@@ -24,6 +24,7 @@ class Manga(DetaBase):
 
     async def delete(self):
         from .chapter import Chapter
+
         chapters = await Chapter.fetch({"manga_id": str(self.id)})
 
         await DetaBase.delete_many(chapters)

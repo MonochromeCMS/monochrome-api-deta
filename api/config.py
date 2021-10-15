@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
 
-    media_path: str = "/media"
     temp_path: str = "/tmp"
 
     max_page_limit: int = Field(50, gt=0)

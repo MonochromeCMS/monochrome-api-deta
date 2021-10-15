@@ -51,7 +51,7 @@ class DetaBase(BaseModel):
             self.__dict__.update(new_instance.__dict__)
 
     @staticmethod
-    async def delete_many(instances: List['DetaBase']):
+    async def delete_many(instances: List["DetaBase"]):
         for instance in instances:
             await instance.delete()
 
@@ -79,10 +79,10 @@ class DetaBase(BaseModel):
             return [cls(**instance) for instance in all_items]
 
     @classmethod
-    async def pagination(cls, query, limit: int, offset: int, order_by: Callable[['DetaBase'], str], reverse=False):
+    async def pagination(cls, query, limit: int, offset: int, order_by: Callable[["DetaBase"], str], reverse=False):
         if query is None:
             query = dict()
         results = await cls.fetch(query, limit + offset + 5)
         count = len(results)
-        page = sorted(results, key=order_by, reverse=reverse)[offset:limit+offset]
+        page = sorted(results, key=order_by, reverse=reverse)[offset : limit + offset]
         return count, page

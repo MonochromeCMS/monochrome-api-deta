@@ -3,11 +3,11 @@ from os import makedirs, path
 from shutil import rmtree
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from .fs import media
 from .exceptions import rate_limit_exceeded_handler
 from .config import get_settings
 from .models.upload import UploadSession
@@ -37,9 +37,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 async def setup_media():
     await UploadSession.flush()
-
-    rmtree(path.join(global_settings.media_path, "blobs"), ignore_errors=True)
-    makedirs(path.join(global_settings.media_path, "blobs"), exist_ok=True)
+    media.rmtree("blobs")
 
 
 @app.on_event("startup")

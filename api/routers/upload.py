@@ -1,7 +1,7 @@
-import shutil
-
 from typing import List, Tuple, Iterable
-from os import path, makedirs, listdir, remove
+from shutil import rmtree
+from os import path, makedirs, remove, listdir
+from tempfile import TemporaryFile
 from aiofiles import open
 from pyunpack import Archive
 from PIL import Image
@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from .auth import is_connected, auth_responses
+from ..fs import media
 from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..config import get_settings
 from ..models.manga import Manga
@@ -26,10 +27,9 @@ router = APIRouter(prefix="/upload", tags=["Upload"], dependencies=[Depends(is_c
 
 
 def copy_chapter_to_session(chapter: Chapter, blobs: List[UUID]):
-    chapter_path = path.join(global_settings.media_path, str(chapter.manga_id), str(chapter.id))
-    blob_path = path.join(global_settings.media_path, "blobs")
+    chapter_path = path.join(str(chapter.manga_id), str(chapter.id))
     for i in range(chapter.length):
-        shutil.copy(path.join(chapter_path, f"{i + 1}.jpg"), path.join(blob_path, f"{blobs[i]}.jpg"))
+        media.copy(path.join(chapter_path, f"{i + 1}.jpg"), path.join("blobs", f"{blobs[i]}.jpg"))
 
 
 post_responses = {
@@ -107,7 +107,10 @@ async def get_upload_session(id: UUID):
 def save_session_image(files: Iterable[Tuple[UUID, str]]):
     for blob_id, file in files:
         im = Image.open(file)
-        im.convert("RGB").save(path.join(global_settings.media_path, "blobs", f"{blob_id}.jpg"))
+        with TemporaryFile() as f:
+            im.convert("RGB").save(f, "JPEG")
+            f.seek(0)
+            media.put(path.join("blobs", f"{blob_id}.jpg"), f)
         remove(file)
 
 
@@ -158,7 +161,6 @@ async def upload_pages_to_upload_session(id: UUID, payload: List[UploadFile] = F
     blobs = []
 
     for file in payload:
-        files = []
         file_blobs = []
         if file.content_type in compressed_formats:
             zip_path = path.join(session_path, f"zip/{file.filename}")
@@ -188,8 +190,7 @@ async def upload_pages_to_upload_session(id: UUID, payload: List[UploadFile] = F
 
 
 def delete_session_images(ids: List[UUID]):
-    for blob_id in ids:
-        remove(path.join(global_settings.media_path, "blobs", f"{blob_id}.jpg"))
+    media.remove([path.join("blobs", f"{blob_id}.jpg") for blob_id in ids])
 
 
 delete_responses = {
@@ -211,22 +212,20 @@ async def delete_upload_session(id: UUID, tasks: BackgroundTasks):
     session_images = (b.id for b in blobs)
     await session.delete()
     session_path = path.join(global_settings.temp_path, str(session.id))
-    tasks.add_task(shutil.rmtree, session_path, True)
+    tasks.add_task(rmtree, session_path, True)
     tasks.add_task(delete_session_images, session_images)
     return "OK"
 
 
 def commit_session_images(chapter: Chapter, pages: List[UUID], edit: bool):
-    blob_path = path.join(global_settings.media_path, "blobs")
-    chapter_path = path.join(global_settings.media_path, str(chapter.manga_id), str(chapter.id))
+    chapter_path = path.join(str(chapter.manga_id), str(chapter.id))
 
     if edit:
-        shutil.rmtree(chapter_path, True)
-    makedirs(chapter_path, exist_ok=True)
+        media.rmtree(chapter_path, True)
 
     page_number = 1
     for page in pages:
-        shutil.move(path.join(blob_path, f"{page}.jpg"), path.join(chapter_path, f"{page_number}.jpg"))
+        media.move(path.join("blobs", f"{page}.jpg"), path.join(chapter_path, f"{page_number}.jpg"))
         page_number += 1
 
 
@@ -269,11 +268,11 @@ async def commit_upload_session(id: UUID, payload: CommitUploadSession, tasks: B
         await chapter.save()
 
     session_path = path.join(global_settings.temp_path, str(session.id))
-    tasks.add_task(shutil.rmtree, session_path, True)
+    tasks.add_task(rmtree, session_path, True)
 
     await session.delete()
 
-    tasks.add_task(commit_session_images, chapter, payload.page_order, edit)
+    commit_session_images(chapter, payload.page_order, edit)
     tasks.add_task(delete_session_images, set(blobs).difference(payload.page_order))
     content = jsonable_encoder(ChapterResponse.from_orm(chapter))
     return JSONResponse(status_code=(200 if edit else 201), content=content)
