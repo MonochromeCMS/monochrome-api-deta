@@ -1,29 +1,22 @@
-import os
-import json
+from typing import Optional, ClassVar
 
+from .base import DetaBase
 from ..config import get_settings
-from ..schemas.settings import SettingsSchema
-
 
 global_settings = get_settings()
-settings_path = os.path.join(global_settings.media_path, "settings.json")
 
 
-class Settings:
-    custom_settings = None
+class Settings(DetaBase):
+    id: str = "settings"
+    title1: Optional[str]
+    title2: Optional[str]
+    about: Optional[str]
+    db_name: ClassVar = "settings"
 
-    def __init__(self):
-        try:
-            file = open(settings_path, "r", encoding="utf8")
-            self.custom_settings = SettingsSchema(**json.load(file))
-        except FileNotFoundError:
-            self.custom_settings = SettingsSchema()
+    @classmethod
+    async def set(cls, **kwargs):
+        await cls(**kwargs).save()
 
-    def get(self):
-        return self.custom_settings
-
-    def set(self, settings: SettingsSchema) -> SettingsSchema:
-        with open(settings_path, "w", encoding="utf8") as file:
-            json.dump(settings.dict(), file)
-        self.custom_settings = settings
-        return settings
+    @classmethod
+    async def get(cls):
+        return await cls.find("settings", None) or cls()

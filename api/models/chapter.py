@@ -1,41 +1,59 @@
-import uuid
+from uuid import UUID
+from datetime import datetime
+from typing import Optional, ClassVar
+from pydantic import Field, PrivateAttr
 
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, func, select, Float, Boolean
-from sqlalchemy.orm import relationship, joinedload
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import UUID
-
-from .base import Base
+from .base import DetaBase
+from .manga import Manga
 
 
-class Chapter(Base):
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String, nullable=False)
-    scan_group = Column(String, nullable=False)
-    volume = Column(Integer, nullable=True)
-    number = Column(Float, nullable=False)
-    length = Column(Integer, nullable=False)
-    webtoon = Column(Boolean, default=False, nullable=False)
-    upload_time = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id", ondelete="CASCADE"), nullable=False)
-    manga = relationship("Manga", back_populates="chapters")
-    sessions = relationship("UploadSession", back_populates="chapter", cascade="all, delete", passive_deletes=True)
+class ScanGroup(DetaBase):
+    id: str
+    db_name: ClassVar = "scan_groups"
 
-    __mapper_args__ = {"eager_defaults": True}
 
-    @classmethod
-    async def latest(cls, db_session: AsyncSession, limit: int = 20, offset: int = 0):
-        stmt = select(cls).options(joinedload(cls.manga))
-        return await cls.pagination(db_session, stmt, limit, offset, (cls.upload_time.desc(),))
+class Chapter(DetaBase):
+    name: str
+    scan_group: str
+    volume: Optional[int]
+    number: float
+    length: int
+    webtoon: bool = False
+    upload_time: datetime = Field(default_factory=datetime.now)
+    manga_id: UUID
+    db_name: ClassVar = "chapters"
 
-    @classmethod
-    async def from_manga(cls, db_session: AsyncSession, manga_id: uuid.UUID):
-        stmt = select(cls).where(cls.manga_id == manga_id).order_by(cls.number.desc())
-        result = await db_session.execute(stmt)
-        return result.scalars().all()
+    async def save(self):
+        await ScanGroup(id=self.scan_group).save()
+        await super().save()
 
     @classmethod
-    async def get_groups(cls, db_session: AsyncSession):
-        stmt = select(cls.scan_group).distinct()
-        result = await db_session.execute(stmt)
-        return result.scalars().all()
+    async def find_detailed(cls, *args, **kwargs):
+        chapter = await cls.find(*args, **kwargs)
+        chapter = chapter.dict()
+        chapter["manga"] = await Manga.find(chapter["manga_id"])
+        return chapter
+
+    @classmethod
+    async def latest(cls, limit: int = 20, offset: int = 0):
+        count, results = await cls.pagination({}, limit, offset, lambda x: x.upload_time, True)
+
+        dict_results = [result.dict() for result in results]
+
+        cache = {}
+        for result in dict_results:
+            if result["manga_id"] not in cache:
+                cache[result["manga_id"]] = await Manga.find(result["manga_id"])
+            result["manga"] = cache[result["manga_id"]]
+        return count, dict_results
+
+    @classmethod
+    async def from_manga(cls, manga_id: UUID):
+        query = {"manga_id": str(manga_id)}
+        results = await cls.fetch(query)
+        return sorted(results, key=lambda x: x.number, reverse=True)
+
+    @classmethod
+    async def get_groups(cls):
+        groups = await ScanGroup.fetch({})
+        return [group.id for group in groups]

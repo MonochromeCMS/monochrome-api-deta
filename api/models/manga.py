@@ -1,37 +1,38 @@
-import uuid
-import enum
+from datetime import datetime
+from enum import Enum
+from typing import Optional, ClassVar
 
-from sqlalchemy import Column, String, select, Numeric, Enum, DateTime, func
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from .base import Base
+from .base import DetaBase, Field
 
 
-class Status(str, enum.Enum):
+class Status(str, Enum):
     ongoing = "ongoing"
     completed = "completed"
     hiatus = "hiatus"
     cancelled = "cancelled"
 
 
-class Manga(Base):
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    title = Column(String, nullable=False)
-    description = Column(String, nullable=False)
-    author = Column(String, nullable=False)
-    artist = Column(String, nullable=False)
-    create_time = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    year = Column(Numeric(4, 0))
-    status = Column(Enum(Status), nullable=False)
-    chapters = relationship("Chapter", back_populates="manga", cascade="all, delete", passive_deletes=True)
-    sessions = relationship("UploadSession", back_populates="manga", cascade="all, delete", passive_deletes=True)
+class Manga(DetaBase):
+    title: str
+    description: str
+    author: str
+    artist: str
+    create_time: datetime = Field(default_factory=datetime.now)
+    year: Optional[int] = Field(ge=1900, le=2100)
+    status: Status
+    db_name: ClassVar = "manga"
 
-    __mapper_args__ = {"eager_defaults": True}
+    async def delete(self):
+        from .chapter import Chapter
+        chapters = await Chapter.fetch({"manga_id": str(self.id)})
+
+        await DetaBase.delete_many(chapters)
+        await super().delete()
 
     @classmethod
-    async def search(cls, db_session: AsyncSession, title: str, limit: int = 20, offset: int = 0):
-        escaped_title = title.replace("%", "\\%")
-        stmt = select(cls).where(cls.title.ilike(f"%{escaped_title}%"))
-        return await cls.pagination(db_session, stmt, limit, offset, (cls.create_time.desc(),))
+    async def search(cls, title: str, limit: int = 20, offset: int = 0):
+        if title:
+            query = {"title?contains": title}
+        else:
+            query = {}
+        return await cls.pagination(query, limit, offset, lambda x: getattr(x, "create_time"))

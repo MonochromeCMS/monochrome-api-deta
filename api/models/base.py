@@ -1,84 +1,89 @@
-import uuid
-from typing import Any
+from typing import ClassVar, List, Union, Callable
+from pydantic import BaseModel, Field
+from math import inf
+from contextlib import asynccontextmanager
+from aiohttp import ClientError
+from uuid import UUID, uuid4
+from fastapi.encoders import jsonable_encoder
 
-from sqlalchemy import func, Column, Integer, select
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import joinedload
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from ..deta import deta
+from ..config import get_settings
+from ..exceptions import UnprocessableEntityHTTPException, NotFoundHTTPException
 
-from ..exceptions import UnprocessableEntityHTTPException, NotFoundHTTPException, HTTPException
+settings = get_settings()
 
 
-@as_declarative()
-class Base:
-    id: Any
-    __name__: str
-    version = Column(Integer, default=0)
+@asynccontextmanager
+async def async_client(db_name: str):
+    client = deta.AsyncBase(db_name)
+    try:
+        yield client
+    except ClientError:
+        UnprocessableEntityHTTPException("Database error")
+    finally:
+        await client.close()
 
-    # Generate __tablename__ automatically
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
 
-    async def save(self, db_session: AsyncSession):
-        """
-        :param db_session:
-        :return:
-        """
-        try:
-            self.version = self.version + 1 if self.version else 1
-            db_session.add(self)
-            await db_session.commit()
-        except SQLAlchemyError:
-            raise UnprocessableEntityHTTPException("Database error")
+class DetaBase(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    version: int = 1
+    db_name: ClassVar
 
-    async def delete(self, db_session: AsyncSession):
-        """
-        :param db_session:
-        :return:
-        """
-        try:
-            await db_session.delete(self)
-            await db_session.commit()
-            return "OK"
-        except SQLAlchemyError:
-            raise UnprocessableEntityHTTPException("Database error")
+    def dict(self, *args, **kwargs):
+        return {**super().dict(*args, **kwargs), "key": str(self.id)}
 
-    async def update(self, db_session: AsyncSession, **kwargs):
-        """
-        :param db_session:
-        :param kwargs:
-        :return:
-        """
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        await self.save(db_session)
+    async def save(self):
+        async with async_client(self.db_name) as db:
+            await db.put(jsonable_encoder(self))
 
-    @classmethod
-    async def find(cls, db_session: AsyncSession, _id: uuid.UUID, exception=NotFoundHTTPException()):
-        stmt = select(cls).where(cls.id == _id)
-        result = await db_session.execute(stmt)
-        instance = result.scalars().first()
-        if instance is None:
-            raise exception
-        else:
-            return instance
+    async def delete(self):
+        async with async_client(self.db_name) as db:
+            await db.delete(str(self.id))
+        return "OK"
+
+    async def update(self, **kwargs):
+        async with async_client(self.db_name) as db:
+            new_version = self.version + 1
+            new_dict = self.__class__(**{**self.dict(), **kwargs, "version": new_version})
+            await db.put(jsonable_encoder(new_dict))
+
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+            setattr(self, "version", new_version)
+
+    @staticmethod
+    async def delete_many(instances: List['DetaBase']):
+        for instance in instances:
+            await instance.delete()
 
     @classmethod
-    async def find_rel(cls, db_session: AsyncSession, _id: uuid.UUID, relationship, exception=NotFoundHTTPException()):
-        stmt = select(cls).where(cls.id == _id).options(joinedload(relationship))
-        result = await db_session.execute(stmt)
-        instance = result.scalars().first()
-        if instance is None:
-            raise exception
-        else:
-            return instance
+    async def find(cls, _id: Union[UUID, str], exception=NotFoundHTTPException()):
+        async with async_client(cls.db_name) as db:
+            instance = await db.get(str(_id))
+            if instance is None and exception:
+                raise exception
+            elif instance:
+                return cls(**instance)
+            else:
+                return None
 
     @classmethod
-    async def pagination(cls, db_session, stmt, limit, offset, order_by):
-        count_stmt = stmt.with_only_columns(func.count(cls.id))
-        count_result = await db_session.execute(count_stmt)
-        page_stmt = stmt.order_by(*order_by).offset(offset).limit(limit)
-        page_result = await db_session.execute(page_stmt)
-        return count_result.scalars().first(), page_result.scalars().all()
+    async def fetch(cls, query, limit: int = inf):
+        async with async_client(cls.db_name) as db:
+            res = await db.fetch(query, limit=min(limit, settings.max_page_limit))
+            all_items = res.items
+
+            while len(all_items) <= limit and res.last:
+                res = await db.fetch(query, last=res.last)
+                all_items += res.items
+
+            return [cls(**instance) for instance in all_items]
+
+    @classmethod
+    async def pagination(cls, query, limit: int, offset: int, order_by: Callable[['DetaBase'], str], reverse=False):
+        if query is None:
+            query = dict()
+        results = await cls.fetch(query, limit + offset + 5)
+        count = len(results)
+        page = sorted(results, key=order_by, reverse=reverse)[offset:limit+offset]
+        return count, page

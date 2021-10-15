@@ -1,29 +1,35 @@
-import uuid
+from typing import Optional, ClassVar, List
+from uuid import UUID
 
-from sqlalchemy import Column, ForeignKey, delete, String
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from .base import Base
+from .base import DetaBase
 
 
-class UploadSession(Base):
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    chapter_id = Column(UUID(as_uuid=True), ForeignKey("chapter.id", ondelete="CASCADE"))
-    manga_id = Column(UUID(as_uuid=True), ForeignKey("manga.id", ondelete="CASCADE"), nullable=False)
-    manga = relationship("Manga", back_populates="sessions")
-    chapter = relationship("Chapter", back_populates="sessions")
-    blobs = relationship("UploadedBlob", back_populates="session", cascade="all, delete", passive_deletes=True)
+class UploadedBlob(DetaBase):
+    name: str
+    session_id: UUID
+    db_name: ClassVar = "blobs"
+
+
+class UploadSession(DetaBase):
+    chapter_id: Optional[UUID]
+    manga_id: UUID
+    db_name: ClassVar = "sessions"
+
+    async def delete(self):
+        blobs = await self.get_blobs()
+        await DetaBase.delete_many(blobs)
+        await super().delete()
+
+    async def get_blobs(self):
+        return await UploadedBlob.fetch({"session_id": str(self.id)})
 
     @classmethod
-    async def flush(cls, db_session: AsyncSession):
-        stmt = delete(cls)
-        return await db_session.execute(stmt)
+    async def find(cls, *args, **kwargs):
+        session = await super().find(*args, **kwargs)
+        blobs = await session.get_blobs()
+        return session, blobs
 
-
-class UploadedBlob(Base):
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String, nullable=False)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("uploadsession.id", ondelete="CASCADE"), nullable=False)
-    session = relationship("UploadSession", back_populates="blobs")
+    @classmethod
+    async def flush(cls):
+        sessions = await cls.fetch({})
+        return await DetaBase.delete_many(sessions)

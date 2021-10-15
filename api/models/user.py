@@ -1,36 +1,35 @@
-import uuid
-import enum
+from uuid import UUID
+from typing import Optional, ClassVar
+from pydantic import EmailStr
 
-from sqlalchemy import Column, String, select, or_, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from .base import Base
+from .base import DetaBase
 
 
-class User(Base):
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username = Column(String(15), nullable=False, unique=True)
-    email = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=False)
+class User(DetaBase):
+    username: str
+    email: Optional[EmailStr]
+    hashed_password: str
+    db_name: ClassVar = "users"
 
     @classmethod
-    async def from_username_email(
-        cls, db_session: AsyncSession, username_email: str, mail: str = "", ignore_user: uuid.UUID = None
-    ):
+    async def from_username_email(cls, username_email: str, mail: str = "", ignore_user: UUID = None):
         if mail == "":
-            stmt = select(cls).where(or_(cls.username == username_email, cls.email == username_email))
+            query = [{"username": username_email}, {"email": username_email}]
         elif mail is None:
-            stmt = select(cls).where(cls.username == username_email)
+            query = [{"username": username_email}]
         else:
-            stmt = select(cls).where(or_(cls.username == username_email, cls.email == mail))
+            query = [{"username": username_email}, {"email": mail}]
 
         if ignore_user:
-            stmt = stmt.where(cls.id != ignore_user)
+            query = [{**x, "id,ne": str(ignore_user)} for x in query]
 
-        result = await db_session.execute(stmt)
-        return result.scalars().first()
+        result = await cls.fetch(query, 3)
+
+        if result:
+            return result[0]
+        else:
+            return None
 
     @classmethod
-    async def all(cls, db_session: AsyncSession, limit: int = 20, offset: int = 0):
-        return await cls.pagination(db_session, select(cls), limit, offset, (cls.username,))
+    async def all(cls, limit: int = 20, offset: int = 0):
+        return await cls.pagination(None, limit, offset, lambda x: getattr(x, "username"))
