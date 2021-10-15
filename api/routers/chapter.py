@@ -1,9 +1,10 @@
 from typing import Optional
 from uuid import UUID
+from os import path
 from fastapi import APIRouter, Depends, Query
 
 from .auth import is_connected, auth_responses
-from ..fs import media, path
+from ..fs import media
 from ..exceptions import NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter

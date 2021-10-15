@@ -84,5 +84,6 @@ class DetaBase(BaseModel):
             query = dict()
         results = await cls.fetch(query, limit + offset + 5)
         count = len(results)
-        page = sorted(results, key=order_by, reverse=reverse)[offset : limit + offset]
+        top = limit + offset
+        page = sorted(results, key=order_by, reverse=reverse)[offset:top]
         return count, page

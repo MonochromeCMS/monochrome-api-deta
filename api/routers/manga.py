@@ -1,12 +1,13 @@
 from PIL import Image
 
 from uuid import UUID
+from os import path
 from tempfile import TemporaryFile
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status, Query, File, UploadFile, BackgroundTasks
 
 from .auth import is_connected, auth_responses
-from ..fs import media, path
+from ..fs import media
 from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter
