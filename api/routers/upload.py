@@ -10,12 +10,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, UploadFile, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from .auth import is_connected, auth_responses
 from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..config import get_settings
-from ..db import get_db
 from ..models.manga import Manga
 from ..models.chapter import Chapter
 from ..models.upload import UploadSession, UploadedBlob
@@ -54,32 +52,33 @@ post_responses = {
 @router.post(
     "/begin", status_code=status.HTTP_201_CREATED, response_model=UploadSessionResponse, responses=post_responses
 )
-async def begin_upload_session(
-    payload: UploadSessionSchema,
-    db_session: AsyncSession = Depends(get_db),
-):
-    await Manga.find(db_session, payload.manga_id, NotFoundHTTPException("Manga not found"))
+async def begin_upload_session(payload: UploadSessionSchema):
+    await Manga.find(payload.manga_id, NotFoundHTTPException("Manga not found"))
     if payload.chapter_id:
-        chapter = await Chapter.find(db_session, payload.chapter_id, NotFoundHTTPException("Chapter not found"))
+        chapter = await Chapter.find(payload.chapter_id, NotFoundHTTPException("Chapter not found"))
         if chapter.manga_id != payload.manga_id:
             raise BadRequestHTTPException("The provided chapter doesn't belong to this manga")
+    else:
+        chapter = None
 
     session = UploadSession(**payload.dict())
-    await session.save(db_session)
+    await session.save()
 
     session_path = path.join(global_settings.temp_path, str(session.id))
     makedirs(path.join(session_path, "zip"))
     makedirs(path.join(session_path, "files"))
 
-    if payload.chapter_id:
+    if chapter:
         blobs = []
         for i in range(1, chapter.length + 1):
             blob = UploadedBlob(session_id=session.id, name=f"{i}.jpg")
-            await blob.save(db_session)
+            await blob.save()
             blobs.append(blob.id)
         copy_chapter_to_session(chapter, blobs)
 
-    return await UploadSession.find_rel(db_session, session.id, UploadSession.blobs)
+    response = session.dict()
+    response["blobs"] = await session.get_blobs()
+    return response
 
 
 get_responses = {
@@ -98,17 +97,14 @@ get_responses = {
 @router.get(
     "/{id}", response_model=UploadSessionResponse, dependencies=[Depends(is_connected)], responses=get_responses
 )
-async def get_upload_session(
-    id: UUID,
-    db_session: AsyncSession = Depends(get_db),
-):
-    session = await UploadSession.find_rel(
-        db_session, id, UploadSession.blobs, NotFoundHTTPException("Session not found")
-    )
-    return session
+async def get_upload_session(id: UUID):
+    session, blobs = await UploadSession.find(id, NotFoundHTTPException("Session not found"))
+    response = session.dict()
+    response["blobs"] = blobs
+    return response
 
 
-def save_session_image(files: Iterable[Tuple[str, str]]):
+def save_session_image(files: Iterable[Tuple[UUID, str]]):
     for blob_id, file in files:
         im = Image.open(file)
         im.convert("RGB").save(path.join(global_settings.media_path, "blobs", f"{blob_id}.jpg"))
@@ -140,11 +136,7 @@ def validate_image_extension(name: str):
     response_model=List[UploadedBlobResponse],
     responses=post_blobs_responses,
 )
-async def upload_pages_to_upload_session(
-    id: UUID,
-    payload: List[UploadFile] = File(...),
-    db_session: AsyncSession = Depends(get_db),
-):
+async def upload_pages_to_upload_session(id: UUID, payload: List[UploadFile] = File(...)):
     compressed_formats = (
         "application/x-7z-compressed",
         "application/x-xz",
@@ -157,7 +149,7 @@ async def upload_pages_to_upload_session(
         if file.content_type not in compressed_formats and not file.content_type.startswith("image/"):
             raise BadRequestHTTPException(f"'{file.filename}'s format is not supported")
 
-    session = await UploadSession.find(db_session, id, NotFoundHTTPException("Session not found"))
+    session, _ = await UploadSession.find(id, NotFoundHTTPException("Session not found"))
 
     session_path = path.join(global_settings.temp_path, str(id))
 
@@ -186,7 +178,7 @@ async def upload_pages_to_upload_session(
 
         for f in files:
             file_blob = UploadedBlob(session_id=session.id, name=f)
-            await file_blob.save(db_session)
+            await file_blob.save()
             blobs.append(file_blob)
             file_blobs.append(file_blob.id)
 
@@ -214,16 +206,10 @@ delete_responses = {
 
 
 @router.delete("/{id}", responses=delete_responses)
-async def delete_upload_session(
-    id: UUID,
-    tasks: BackgroundTasks,
-    db_session: AsyncSession = Depends(get_db),
-):
-    session = await UploadSession.find_rel(
-        db_session, id, UploadSession.blobs, NotFoundHTTPException("Session not found")
-    )
-    session_images = (b.id for b in session.blobs)
-    await session.delete(db_session)
+async def delete_upload_session(id: UUID, tasks: BackgroundTasks):
+    session, blobs = await UploadSession.find(id, NotFoundHTTPException("Session not found"))
+    session_images = (b.id for b in blobs)
+    await session.delete()
     session_path = path.join(global_settings.temp_path, str(session.id))
     tasks.add_task(shutil.rmtree, session_path, True)
     tasks.add_task(delete_session_images, session_images)
@@ -266,16 +252,9 @@ post_commit_responses = {
 
 
 @router.post("/{id}/commit", response_model=ChapterResponse, responses=post_commit_responses)
-async def commit_upload_session(
-    id: UUID,
-    payload: CommitUploadSession,
-    tasks: BackgroundTasks,
-    db_session: AsyncSession = Depends(get_db),
-):
-    session = await UploadSession.find_rel(
-        db_session, id, UploadSession.blobs, NotFoundHTTPException("Session not found")
-    )
-    blobs = [b.id for b in session.blobs]
+async def commit_upload_session(id: UUID, payload: CommitUploadSession, tasks: BackgroundTasks):
+    session, blobs = await UploadSession.find(id, NotFoundHTTPException("Session not found"))
+    blobs = [b.id for b in blobs]
     edit = session.chapter_id is not None
     if not len(payload.page_order) > 0:
         raise BadRequestHTTPException("At least one page needs to be provided")
@@ -283,16 +262,16 @@ async def commit_upload_session(
         raise BadRequestHTTPException("Some pages don't belong to this session")
 
     if session.chapter_id:
-        chapter = await Chapter.find(db_session, session.chapter_id, NotFoundHTTPException("Chapter not found"))
-        await chapter.update(db_session, length=len(payload.page_order), **payload.chapter_draft.dict())
+        chapter = await Chapter.find(session.chapter_id, NotFoundHTTPException("Chapter not found"))
+        await chapter.update(length=len(payload.page_order), **payload.chapter_draft.dict())
     else:
         chapter = Chapter(manga_id=session.manga_id, length=len(payload.page_order), **payload.chapter_draft.dict())
-        await chapter.save(db_session)
+        await chapter.save()
 
     session_path = path.join(global_settings.temp_path, str(session.id))
     tasks.add_task(shutil.rmtree, session_path, True)
 
-    await session.delete(db_session)
+    await session.delete()
 
     tasks.add_task(commit_session_images, chapter, payload.page_order, edit)
     tasks.add_task(delete_session_images, set(blobs).difference(payload.page_order))
@@ -314,20 +293,13 @@ delete_all_blobs_responses = {
 
 
 @router.delete("/{session}/files", responses=delete_all_blobs_responses)
-async def delete_all_pages_from_upload_session(
-    session: UUID,
-    tasks: BackgroundTasks,
-    db_session: AsyncSession = Depends(get_db),
-):
-    session = await UploadSession.find_rel(
-        db_session, session, UploadSession.blobs, NotFoundHTTPException("Session not found")
-    )
+async def delete_all_pages_from_upload_session(session: UUID, tasks: BackgroundTasks):
+    session, blobs = await UploadSession.find(session, NotFoundHTTPException("Session not found"))
 
-    session_images = (b.id for b in session.blobs)
+    session_images = (b.id for b in blobs)
     tasks.add_task(delete_session_images, session_images)
 
-    for blob in session.blobs:
-        await blob.delete(db_session)
+    await UploadedBlob.delete_many(blobs)
 
     return "OK"
 
@@ -350,19 +322,13 @@ delete_blob_responses = {
 
 
 @router.delete("/{session}/{file}", responses=delete_blob_responses)
-async def delete_page_from_upload_session(
-    session: UUID,
-    file: UUID,
-    tasks: BackgroundTasks,
-    db_session: AsyncSession = Depends(get_db),
-):
-    session = await UploadSession.find_rel(
-        db_session, session, UploadSession.blobs, NotFoundHTTPException("Session not found")
-    )
-    if file not in (b.id for b in session.blobs):
+async def delete_page_from_upload_session(session: UUID, file: UUID, tasks: BackgroundTasks):
+    session, blobs = await UploadSession.find(session, NotFoundHTTPException("Session not found"))
+
+    if file not in (b.id for b in blobs):
         raise BadRequestHTTPException("The blob doesn't exist in the session")
 
-    blob = await UploadedBlob.find(db_session, file, NotFoundHTTPException("Blob not found"))
-    await blob.delete(db_session)
+    blob = await UploadedBlob.find(file, NotFoundHTTPException("Blob not found"))
+    await blob.delete()
     tasks.add_task(delete_session_images, (file,))
     return "OK"
