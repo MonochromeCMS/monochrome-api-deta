@@ -44,12 +44,11 @@ class DetaBase(BaseModel):
     async def update(self, **kwargs):
         async with async_client(self.db_name) as db:
             new_version = self.version + 1
-            new_dict = self.__class__(**{**self.dict(), **kwargs, "version": new_version})
-            await db.put(jsonable_encoder(new_dict))
+            new_dict = {**self.dict(), **kwargs, "version": new_version}
+            new_instance = self.__class__(**new_dict)
+            await db.put(jsonable_encoder(new_instance))
 
-            for k, v in kwargs.items():
-                setattr(self, k, v)
-            setattr(self, "version", new_version)
+            self.__dict__.update(new_instance.__dict__)
 
     @staticmethod
     async def delete_many(instances: List['DetaBase']):
