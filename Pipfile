@@ -25,7 +25,7 @@ python-jose = {extras = ["cryptography"], version = "*"}
 passlib = {extras = ["bcrypt"], version = "*"}
 python-multipart = "*"
 pillow = ">=8.3.2"
-deta = "*"
+deta = {extras = ["async"], version = "*"}
 aiohttp = "*"
 
 [dev-packages]
