@@ -22,7 +22,7 @@ if getenv("DETA_RUNTIME"):
     app = App(app)
 
     @app.lib.cron()
-    async def setup_media():
+    async def setup_media(event):
         print("Cleaning up the lingering sessions...")
         await UploadSession.flush()
         media.rmtree("blobs")
