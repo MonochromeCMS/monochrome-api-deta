@@ -1,4 +1,4 @@
-FROM python:3-slim as builder
+FROM python:3.9-slim as builder
 WORKDIR /pipfiles
 
 # INSTALL THE BUILD DEP.
