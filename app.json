@@ -1,0 +1,60 @@
+{
+  "name": "Monochrome API",
+  "description": "Monochrome's API implemented with the Deta services",
+  "keywords": [
+    "manga",
+    "cms",
+    "deta",
+    "api"
+  ],
+  "website": "https://manga.d34d.one/",
+  "repository": "https://github.com/MonochromeCMS/monochrome-api-deta",
+  "logo": "https://raw.githubusercontent.com/MonochromeCMS/monochrome-webui/main/src/assets/logo.svg",
+  "success_url": "/docs",
+  "env": {
+    "DETA_PROJECT_KEY": {
+      "description": "Deta project key",
+      "required": true
+    },
+    "JWT_SECRET_KEY": {
+      "description": "Secret used to sign the JWTs",
+      "required": true,
+      "generator": "secret"
+    },
+    "CORS_ORIGINS": {
+      "description": "Comma-separated list of trusted domains",
+      "value": "",
+      "required": false
+    },
+    "JWT_ALGORITHM": {
+      "description": "Algorithm used to sign the JWTs",
+      "value": "HS256",
+      "required": false
+    },
+    "JWT_ACCESS_TOKEN_EXPIRE_MINUTES": {
+      "description": "How many minutes should the JWTs last",
+      "value": "60",
+      "required": false
+    },
+    "MAX_PAGE_LIMIT": {
+      "description": "Maximum amount of elements per page",
+      "value": "50",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "image": "heroku/python",
+  "buildpacks": [
+    {
+      "url": "https://github.com/opendoor-labs/heroku-buildpack-p7zip.git"
+    },
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
