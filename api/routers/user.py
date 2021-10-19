@@ -5,17 +5,17 @@ from fastapi import APIRouter, Depends, Query, status
 
 from ..config import get_settings
 from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
-from .auth import is_connected, get_password_hash, auth_responses
+from .auth import is_connected, get_password_hash, auth_responses, Permission
 from ..models.user import User
 from ..schemas.user import UserSchema, UserResponse, UsersResponse
 
 settings = get_settings()
 
-router = APIRouter(
-    prefix="/user",
-    tags=["User"],
-    dependencies=[Depends(is_connected)],
-)
+router = APIRouter(prefix="/user", tags=["User"])
+
+
+async def _get_user(user_id: UUID):
+    return await User.find(user_id, NotFoundHTTPException("User not found"))
 
 
 get_me_responses = {
@@ -46,11 +46,9 @@ get_responses = {
 }
 
 
-@router.get("/{id}", response_model=UserResponse, responses=get_responses)
-async def get_user(id: UUID):
+@router.get("/{user_id}", response_model=UserResponse, responses=get_responses)
+async def get_user(user: User = Permission("view", _get_user)):
     """Provides information about a user."""
-    user = await User.find(id, NotFoundHTTPException("User not found"))
-
     return user
 
 
@@ -67,11 +65,9 @@ put_responses = {
 }
 
 
-@router.put("/{id}", response_model=UserResponse, responses=put_responses)
-async def update_user(id: UUID, payload: UserSchema):
+@router.put("/{user_id}", response_model=UserResponse, responses=put_responses)
+async def update_user(payload: UserSchema, user: User = Permission("edit", _get_user)):
     hashed_pwd = get_password_hash(payload.password)
-
-    user = await User.find(id, NotFoundHTTPException("User not found"))
 
     if await User.from_username_email(payload.username, payload.email, user.id):
         raise BadRequestHTTPException("That username or email is already in use")
@@ -100,13 +96,8 @@ delete_responses = {
 }
 
 
-@router.delete("/{id}", responses=delete_responses)
-async def delete_user(id: UUID, user: User = Depends(is_connected)):
-    if user.id == id:
-        raise BadRequestHTTPException("You can't delete your own user")
-
-    user = await User.find(id, NotFoundHTTPException("User not found"))
-
+@router.delete("/{user_id}", responses=delete_responses)
+async def delete_user(user: User = Permission("edit", _get_user)):
     return await user.delete()
 
 
@@ -124,7 +115,7 @@ post_responses = {
 
 
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED, responses=post_responses)
-async def create_user(payload: UserSchema):
+async def create_user(payload: UserSchema, _: User = Permission("create", User.__class_acl__)):
     hashed_pwd = get_password_hash(payload.password)
 
     if await User.from_username_email(payload.username, payload.email):
@@ -147,10 +138,11 @@ get_all_responses = {
 }
 
 
-@router.get("", response_model=UsersResponse, responses=get_all_responses)
+@router.get("", response_model=UsersResponse, responses=get_all_responses, dependencies=[])
 async def get_users(
     limit: Optional[int] = Query(10, ge=1, le=settings.max_page_limit),
     offset: Optional[int] = Query(0, ge=0),
+    _: User = Permission("view", User.__class_acl__),
 ):
     count, page = await User.all(limit, offset)
 
