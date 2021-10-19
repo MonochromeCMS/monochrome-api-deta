@@ -5,6 +5,7 @@ __pycache__/
 dist/
 .env
 .venv
+.deta
 env/
 venv/
 htmlcov/

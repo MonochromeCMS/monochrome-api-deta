@@ -19,6 +19,7 @@ app = FastAPI(title="Monochrome", version="1.2.3")
 
 if getenv("DETA_RUNTIME"):
     from deta import App
+
     app = App(app)
 
     @app.lib.cron()

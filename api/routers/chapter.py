@@ -85,7 +85,9 @@ put_responses = {
 }
 
 
-@router.put("/{chapter_id}", response_model=ChapterResponse, dependencies=[Depends(is_connected)], responses=put_responses)
+@router.put(
+    "/{chapter_id}", response_model=ChapterResponse, dependencies=[Depends(is_connected)], responses=put_responses
+)
 async def update_chapter(
     payload: ChapterSchema,
     chapter: Chapter = Permission("edit", _get_chapter),

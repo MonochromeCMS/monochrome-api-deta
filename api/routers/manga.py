@@ -26,6 +26,7 @@ router = APIRouter(prefix="/manga", tags=["Manga"])
 async def _get_manga(manga_id: UUID):
     return await Manga.find(manga_id, NotFoundHTTPException("Manga not found"))
 
+
 post_responses = {
     **auth_responses,
     201: {
