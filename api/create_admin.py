@@ -33,6 +33,7 @@ async def main():
         "version": 1,
         "id": str(uuid),
         "key": str(uuid),
+        "role": "admin",
     }
 
     await db.put(user)
