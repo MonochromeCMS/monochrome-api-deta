@@ -1,3 +1,4 @@
+from enum import Enum
 from uuid import UUID
 from typing import Optional, ClassVar
 from pydantic import EmailStr
@@ -5,11 +6,22 @@ from pydantic import EmailStr
 from .base import DetaBase
 
 
+class Role(str, Enum):
+    admin = "admin"
+    uploader = "uploader"
+    user = "user"
+
+
 class User(DetaBase):
+    role: Role = Role.admin
     username: str
     email: Optional[EmailStr]
     hashed_password: str
     db_name: ClassVar = "users"
+
+    @property
+    def principals(self):
+        return [f"user:{self.id}", f"role:{self.role}"]
 
     @classmethod
     async def from_username_email(cls, username_email: str, mail: str = "", ignore_user: UUID = None):
