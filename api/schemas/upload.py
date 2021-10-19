@@ -16,8 +16,8 @@ class UploadSessionSchema(CamelModel):
     class Config:
         schema_extra = {
             "example": {
-                "manga_id": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978",
-                "chapter_id": "116bdaa6-f62d-4b53-98b2-237adbaad788",
+                "mangaId": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978",
+                "chapterId": "116bdaa6-f62d-4b53-98b2-237adbaad788",
             }
         }
 
@@ -48,6 +48,7 @@ class UploadSessionResponse(UploadSessionSchema):
         [],
         description="Images uploaded to the session",
     )
+    owner_id: Optional[UUID] = Field(description="User that created this upload session")
 
     class Config:
         orm_mode = True

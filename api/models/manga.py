@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 from typing import Optional, ClassVar
 
 from .base import DetaBase, Field
@@ -13,6 +14,7 @@ class Status(str, Enum):
 
 
 class Manga(DetaBase):
+    owner_id: Optional[UUID]
     title: str
     description: str
     author: str

@@ -5,6 +5,7 @@ from fastapi_camelcase import CamelModel
 from pydantic import Field, EmailStr, BaseModel
 
 from .base import PaginationResponse
+from ..models.user import Role
 
 
 class TokenResponse(BaseModel):
@@ -22,11 +23,13 @@ class User(CamelModel):
 
 class UserSchema(User):
     password: str
+    role: Role
 
 
 class UserResponse(User):
     id: UUID = Field(title="ID", description="ID of the user")
     version: int = Field(description="Version of the user")
+    role: Role = Field(description="Role of the user")
 
     class Config:
         orm_mode = True
@@ -36,6 +39,7 @@ class UserResponse(User):
                 "username": "user",
                 "email": "user@example.com",
                 "version": 2,
+                "role": "admin",
             }
         }
 
