@@ -48,6 +48,7 @@ class ChapterResponse(ChapterSchema):
     upload_time: datetime = Field(
         description="Time this chapter was uploaded",
     )
+    owner_id: Optional[UUID] = Field(description="User that uploaded this chapter")
 
     class Config:
         orm_mode = True
@@ -63,6 +64,7 @@ class ChapterResponse(ChapterSchema):
                 "id": "4abe53f4-0eaa-4f31-9210-a625fa665e23",
                 "scanGroup": "Monochrome Scans",
                 "uploadTime": "2000-08-24 00:00:00",
+                "ownerId": "6901d7f6-c4e1-4200-9dd0-a6fccc065978",
             }
         }
 

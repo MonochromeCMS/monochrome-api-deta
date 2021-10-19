@@ -51,6 +51,7 @@ class MangaResponse(MangaSchema):
     create_time: datetime = Field(
         description="Time this manga was created",
     )
+    owner_id: Optional[UUID] = Field(description="User that created this manga")
 
     class Config:
         orm_mode = True
@@ -65,6 +66,7 @@ class MangaResponse(MangaSchema):
                 "status": Status.ongoing,
                 "version": 2,
                 "createTime": "2000-08-24 00:00:00",
+                "ownerId": "6901d7f6-c4e1-4200-9dd0-a6fccc065978",
             }
         }
 

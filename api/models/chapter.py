@@ -13,6 +13,7 @@ class ScanGroup(DetaBase):
 
 
 class Chapter(DetaBase):
+    owner_id: Optional[UUID]
     name: str
     scan_group: str
     volume: Optional[int]

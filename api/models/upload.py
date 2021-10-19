@@ -11,6 +11,7 @@ class UploadedBlob(DetaBase):
 
 
 class UploadSession(DetaBase):
+    owner_id: Optional[UUID]
     chapter_id: Optional[UUID]
     manga_id: UUID
     db_name: ClassVar = "sessions"
