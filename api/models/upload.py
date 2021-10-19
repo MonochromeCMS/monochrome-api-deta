@@ -1,7 +1,8 @@
-from typing import Optional, ClassVar, List
+from typing import Optional, ClassVar
 from uuid import UUID
 
 from .base import DetaBase
+from ..fastapi_permissions import Allow
 
 
 class UploadedBlob(DetaBase):
@@ -15,6 +16,23 @@ class UploadSession(DetaBase):
     chapter_id: Optional[UUID]
     manga_id: UUID
     db_name: ClassVar = "sessions"
+
+    @property
+    def __acl__(self):
+        return (
+            *self.__class_acl__(),
+            (Allow, ["role:uploader", f"user:{self.owner_id}"], "view"),
+            (Allow, ["role:uploader", f"user:{self.owner_id}"], "edit"),
+        )
+
+    @classmethod
+    def __class_acl__(cls):
+        return (
+            (Allow, ["role:admin"], "create"),
+            (Allow, ["role:uploader"], "create"),
+            (Allow, ["role:admin"], "view"),
+            (Allow, ["role:admin"], "edit"),
+        )
 
     async def delete(self):
         blobs = await self.get_blobs()

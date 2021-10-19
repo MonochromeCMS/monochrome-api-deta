@@ -4,6 +4,7 @@ from typing import Optional, ClassVar
 from pydantic import EmailStr
 
 from .base import DetaBase
+from ..fastapi_permissions import Allow
 
 
 class Role(str, Enum):
@@ -18,6 +19,22 @@ class User(DetaBase):
     email: Optional[EmailStr]
     hashed_password: str
     db_name: ClassVar = "users"
+
+    @property
+    def __acl__(self):
+        return (
+            *self.__class_acl__(),
+            (Allow, [f"user:{self.id}"], "view"),
+            (Allow, [f"user:{self.id}"], "edit"),
+        )
+
+    @classmethod
+    def __class_acl__(cls):
+        return (
+            (Allow, ["role:admin"], "create"),
+            (Allow, ["role:admin"], "view"),
+            (Allow, ["role:admin"], "edit"),
+        )
 
     @property
     def principals(self):

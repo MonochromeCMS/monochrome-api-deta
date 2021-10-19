@@ -4,6 +4,7 @@ from uuid import UUID
 from typing import Optional, ClassVar
 
 from .base import DetaBase, Field
+from ..fastapi_permissions import Allow, Everyone
 
 
 class Status(str, Enum):
@@ -23,6 +24,22 @@ class Manga(DetaBase):
     year: Optional[int] = Field(ge=1900, le=2100)
     status: Status
     db_name: ClassVar = "manga"
+
+    @property
+    def __acl__(self):
+        return (
+            *self.__class_acl__(),
+            (Allow, ["role:uploader", f"user:{self.owner_id}"], "edit"),
+        )
+
+    @classmethod
+    def __class_acl__(cls):
+        return (
+            (Allow, [Everyone], "view"),
+            (Allow, ["role:admin"], "edit"),
+            (Allow, ["role:admin"], "create"),
+            (Allow, ["role:uploader"], "create"),
+        )
 
     async def delete(self):
         from .chapter import Chapter
