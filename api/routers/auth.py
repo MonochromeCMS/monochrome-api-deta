@@ -25,7 +25,7 @@ settings = get_settings()
 
 router = APIRouter(tags=["Auth"], prefix="/auth")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,18 +51,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def is_connected(token: str = Depends(oauth2_scheme)):
+async def get_connected_user(token: str = Depends(oauth2_scheme)):
+    if not token:
+        return None
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-        id: str = payload.get("sub")
-        if id is None:
-            raise AuthFailedHTTPException()
+        _id: str = payload.get("sub")
+        if _id is None:
+            return None
     except ExpiredSignatureError:
-        raise AuthFailedHTTPException("Expired token")
+        return None
     except JWTError:
-        raise AuthFailedHTTPException()
-    user = await User.find(UUID(id), AuthFailedHTTPException())
+        return None
+    user = await User.find(UUID(_id), None)
     return user
+
+
+async def is_connected(user: User = Depends(get_connected_user)):
+    if user:
+        return user
+    else:
+        raise AuthFailedHTTPException()
 
 
 token_responses = {
