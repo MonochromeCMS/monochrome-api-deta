@@ -5,6 +5,7 @@ from pydantic import Field, PrivateAttr
 
 from .base import DetaBase
 from .manga import Manga
+from ..fastapi_permissions import Allow, Everyone
 
 
 class ScanGroup(DetaBase):
@@ -23,6 +24,20 @@ class Chapter(DetaBase):
     upload_time: datetime = Field(default_factory=datetime.now)
     manga_id: UUID
     db_name: ClassVar = "chapters"
+
+    @property
+    def __acl__(self):
+        return (
+            *self.__class_acl__(),
+            (Allow, ["role:uploader", f"user:{self.owner_id}"], "edit"),
+        )
+
+    @classmethod
+    def __class_acl__(cls):
+        return (
+            (Allow, [Everyone], "view"),
+            (Allow, ["role:admin"], "edit"),
+        )
 
     async def save(self):
         await ScanGroup(id=self.scan_group).save()

@@ -1,6 +1,7 @@
 from typing import Optional, ClassVar
 
 from .base import DetaBase
+from ..fastapi_permissions import Allow, Everyone
 from ..config import get_settings
 
 global_settings = get_settings()
@@ -12,6 +13,11 @@ class Settings(DetaBase):
     title2: Optional[str]
     about: Optional[str]
     db_name: ClassVar = "settings"
+
+    __acl__ = (
+        (Allow, [Everyone], "view"),
+        (Allow, [f"role:admin"], "edit"),
+    )
 
     @classmethod
     async def set(cls, **kwargs):
