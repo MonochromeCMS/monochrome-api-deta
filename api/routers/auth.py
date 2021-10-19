@@ -7,6 +7,11 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt, ExpiredSignatureError
 from passlib.context import CryptContext
 
+from ..fastapi_permissions import (
+    Authenticated,
+    Everyone,
+    configure_permissions,
+)
 from ..app import limiter
 from ..config import get_settings
 from ..exceptions import AuthFailedHTTPException
@@ -73,6 +78,17 @@ async def is_connected(user: User = Depends(get_connected_user)):
     else:
         raise AuthFailedHTTPException()
 
+
+async def get_active_principals(user: User = Depends(get_connected_user)):
+    if user:
+        principals = [Everyone, Authenticated]
+        principals.extend(getattr(user, "principals", []))
+    else:
+        principals = [Everyone]
+    return principals
+
+
+Permission = configure_permissions(get_active_principals)
 
 token_responses = {
     200: {"description": "A token for the logged in user", "model": TokenResponse},
