@@ -6,10 +6,12 @@ from tempfile import TemporaryFile
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status, Query, File, UploadFile, BackgroundTasks
 
-from .auth import is_connected, auth_responses
+from .auth import get_connected_user, auth_responses, Permission, get_active_principals
+from ..fastapi_permissions import has_permission, permission_exception
 from ..fs import media
 from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..config import get_settings
+from ..models.user import User
 from ..models.chapter import Chapter
 from ..models.manga import Manga
 from ..schemas.chapter import ChapterResponse
@@ -20,6 +22,9 @@ settings = get_settings()
 
 router = APIRouter(prefix="/manga", tags=["Manga"])
 
+
+async def _get_manga(manga_id: UUID):
+    return await Manga.find(manga_id, NotFoundHTTPException("Manga not found"))
 
 post_responses = {
     **auth_responses,
@@ -34,16 +39,16 @@ post_responses = {
     "",
     status_code=status.HTTP_201_CREATED,
     response_model=MangaResponse,
-    dependencies=[Depends(is_connected)],
+    dependencies=[Permission("create", Manga.__class_acl__)],
     responses=post_responses,
 )
-async def create_manga(payload: MangaSchema):
-    manga = Manga(**payload.dict())
+async def create_manga(payload: MangaSchema, user: User = Depends(get_connected_user)):
+    manga = Manga(**payload.dict(), owner_id=user.id)
     await manga.save()
     return manga
 
 
-@router.get("", response_model=MangaSearchResponse)
+@router.get("", response_model=MangaSearchResponse, dependencies=[Permission("view", Manga.__class_acl__)])
 async def search_manga(
     title: str = "",
     limit: Optional[int] = Query(10, ge=1, le=settings.max_page_limit),
@@ -70,9 +75,9 @@ get_responses = {
 }
 
 
-@router.get("/{id}", response_model=MangaResponse, responses=get_responses)
-async def get_manga(id: UUID):
-    return await Manga.find(id, NotFoundHTTPException("Manga not found"))
+@router.get("/{manga_id}", response_model=MangaResponse, responses=get_responses)
+async def get_manga(manga: Manga = Permission("view", _get_manga)):
+    return manga
 
 
 get_chapters_responses = {
@@ -84,10 +89,14 @@ get_chapters_responses = {
 }
 
 
-@router.get("/{id}/chapters", response_model=List[ChapterResponse], responses=get_chapters_responses)
-async def get_manga_chapters(id: UUID):
-    await Manga.find(id, NotFoundHTTPException("Manga not found"))
-    return await Chapter.from_manga(id)
+@router.get("/{manga_id}/chapters", response_model=List[ChapterResponse], responses=get_chapters_responses)
+async def get_manga_chapters(
+    manga: Manga = Permission("view", _get_manga), user_principals=Depends(get_active_principals)
+):
+    if await has_permission(user_principals, "view", Chapter.__class_acl__()):
+        return await Chapter.from_manga(manga.id)
+    else:
+        raise permission_exception
 
 
 delete_responses = {
@@ -104,9 +113,8 @@ delete_responses = {
 }
 
 
-@router.delete("/{id}", dependencies=[Depends(is_connected)], responses=delete_responses)
-async def delete_manga(id: UUID):
-    manga = await Manga.find(id, NotFoundHTTPException("Manga not found"))
+@router.delete("/{manga_id}", responses=delete_responses)
+async def delete_manga(manga: Manga = Permission("edit", _get_manga)):
     media.rmtree(str(manga.id))
     return await manga.delete()
 
@@ -121,9 +129,8 @@ put_responses = {
 }
 
 
-@router.put("/{id}", response_model=MangaResponse, dependencies=[Depends(is_connected)], responses=put_responses)
-async def update_manga(payload: MangaSchema, id: UUID):
-    manga = await Manga.find(id, NotFoundHTTPException("Manga not found"))
+@router.put("/{manga_id}", response_model=MangaResponse, responses=put_responses)
+async def update_manga(payload: MangaSchema, manga: Manga = Permission("edit", _get_manga)):
     await manga.update(**payload.dict())
     return manga
 
@@ -150,11 +157,12 @@ put_cover_responses = {
 }
 
 
-@router.put("/{id}/cover", dependencies=[Depends(is_connected)], responses=put_cover_responses)
-async def set_manga_cover(id: UUID, tasks: BackgroundTasks, payload: UploadFile = File(...)):
+@router.put("/{manga_id}/cover", responses=put_cover_responses)
+async def set_manga_cover(
+    tasks: BackgroundTasks, payload: UploadFile = File(...), manga: Manga = Permission("edit", _get_manga)
+):
     if not payload.content_type.startswith("image/"):
         raise BadRequestHTTPException(f"'{payload.filename}' is not an image")
 
-    manga = await Manga.find(id, NotFoundHTTPException("Manga not found"))
     tasks.add_task(save_cover, manga.id, payload.file)
     return manga
