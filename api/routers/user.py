@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, Query, status
 
 from ..config import get_settings
 from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
-from .auth import is_connected, get_password_hash, auth_responses, Permission
+from .auth import is_connected, get_password_hash, auth_responses, Permission, get_active_principals
+from ..fastapi_permissions import has_permission
 from ..models.user import User
 from ..schemas.user import UserSchema, UserResponse, UsersResponse
 
@@ -66,7 +67,11 @@ put_responses = {
 
 
 @router.put("/{user_id}", response_model=UserResponse, responses=put_responses)
-async def update_user(payload: UserSchema, user: User = Permission("edit", _get_user)):
+async def update_user(
+    payload: UserSchema,
+    user: User = Permission("edit", _get_user),
+    user_principals=Depends(get_active_principals),
+):
     hashed_pwd = get_password_hash(payload.password)
 
     if await User.from_username_email(payload.username, payload.email, user.id):
@@ -74,6 +79,10 @@ async def update_user(payload: UserSchema, user: User = Permission("edit", _get_
 
     data = payload.dict()
     data.pop("password")
+
+    if not await has_permission(user_principals, "edit", User.__class_acl__()):
+        data.pop("role")
+
     await user.update(**data, hashed_password=hashed_pwd)
 
     return user
