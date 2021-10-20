@@ -279,7 +279,12 @@ async def commit_upload_session(
         chapter = await Chapter.find(session.chapter_id, NotFoundHTTPException("Chapter not found"))
         await chapter.update(length=len(payload.page_order), **payload.chapter_draft.dict())
     else:
-        chapter = Chapter(manga_id=session.manga_id, length=len(payload.page_order), **payload.chapter_draft.dict())
+        chapter = Chapter(
+            manga_id=session.manga_id,
+            length=len(payload.page_order),
+            owner_id=session.owner_id,
+            **payload.chapter_draft.dict(),
+        )
         await chapter.save()
 
     session_path = path.join(global_settings.temp_path, str(session.id))
