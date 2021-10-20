@@ -16,7 +16,7 @@ class Settings(DetaBase):
 
     __acl__ = (
         (Allow, [Everyone], "view"),
-        (Allow, [f"role:admin"], "edit"),
+        (Allow, ["role:admin"], "edit"),
     )
 
     @classmethod

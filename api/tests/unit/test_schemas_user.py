@@ -36,27 +36,36 @@ class TestUser(BaseModelTest):
     example_data = {
         "username": "user",
         "email": "user@example.com",
+        "role": "uploader",
     }
     correct_data = [
         {
             "username": "user",
             "email": None,
+            "role": "uploader",
         }
     ]
     wrong_data = [
         # Missing fields
         {
             "email": "user@example.com",
+            "role": "uploader",
+        },
+        {
+            "username": "user",
+            "email": "user@example.com",
         },
         # Max username length
         {
             "username": "userAbove15Characters",
             "email": "user@example.com",
+            "role": "uploader",
         },
         # Bad email
         {
             "username": "user",
             "email": "NotAnEm@il",
+            "role": "uploader",
         },
     ]
 
@@ -84,6 +93,7 @@ class TestUserResponse(BaseModelTest):
     }
     wrong_data = [
         # Missing fields
+        {},
         {
             "version": 2,
         },

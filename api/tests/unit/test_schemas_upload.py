@@ -68,17 +68,20 @@ class TestUploadSessionResponse(BaseModelTest):
         **parent.example_data,
         "id": UUID("6970baa2-4932-497d-a3e0-4b5545252dc6"),
         "blobs": [],
+        "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
     }
     correct_data = [
         {
             "id": UUID("6970baa2-4932-497d-a3e0-4b5545252dc6"),
             "blobs": [TestUploadedBlobResponse.example_data],
+            "owner_id": None,
         },
     ]
     wrong_data = [
         # Missing fields
         {
             "blobs": [TestUploadedBlobResponse.example_data],
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
     ]
     irregular_data = [
@@ -86,10 +89,17 @@ class TestUploadSessionResponse(BaseModelTest):
         {
             "id": "6970baa2-4932-497d-a3e0-4b5545252dc6",
             "blobs": [],
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
+        {
+            "id": UUID("6970baa2-4932-497d-a3e0-4b5545252dc6"),
+            "blobs": [],
+            "owner_id": "3f01d7dd-c4e1-4102-9dd0-a6fccc065978",
         },
         # Default values
         {
             "id": UUID("6970baa2-4932-497d-a3e0-4b5545252dc6"),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
     ]
 
