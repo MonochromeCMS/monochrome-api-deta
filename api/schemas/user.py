@@ -19,17 +19,16 @@ class TokenResponse(BaseModel):
 class User(CamelModel):
     username: str = Field(max_length=15)
     email: Optional[EmailStr]
+    role: Role = Field(description="Role of the user")
 
 
 class UserSchema(User):
     password: str
-    role: Role
 
 
 class UserResponse(User):
     id: UUID = Field(title="ID", description="ID of the user")
     version: int = Field(description="Version of the user")
-    role: Role = Field(description="Role of the user")
 
     class Config:
         orm_mode = True

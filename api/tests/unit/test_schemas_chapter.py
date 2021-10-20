@@ -91,6 +91,7 @@ class TestChapterResponse(BaseModelTest):
         "version": 2,
         "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
         "upload_time": datetime(2000, 8, 24),
+        "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
     }
     wrong_data = [
         # Missing fields
@@ -99,30 +100,35 @@ class TestChapterResponse(BaseModelTest):
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         {
             "length": 15,
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         {
             "length": 15,
             "manga_id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         {
             "length": 15,
             "manga_id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
             "version": 2,
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         {
             "length": 15,
             "manga_id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
     ]
     irregular_data = [
@@ -133,6 +139,7 @@ class TestChapterResponse(BaseModelTest):
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         {
             "length": 15,
@@ -140,6 +147,7 @@ class TestChapterResponse(BaseModelTest):
             "version": "2",
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         # String to UUID
         {
@@ -148,6 +156,15 @@ class TestChapterResponse(BaseModelTest):
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
+        {
+            "length": 15,
+            "manga_id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
+            "version": 2,
+            "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
+            "upload_time": datetime(2000, 8, 24),
+            "owner_id": "3f01d7dd-c4e1-4102-9dd0-a6fccc065978",
         },
         {
             "length": 15,
@@ -155,6 +172,7 @@ class TestChapterResponse(BaseModelTest):
             "version": 2,
             "id": "4abe53f4-0eaa-4f31-9210-a625fa665e23",
             "upload_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
         # String to datetime
         {
@@ -163,6 +181,7 @@ class TestChapterResponse(BaseModelTest):
             "version": 2,
             "id": UUID("4abe53f4-0eaa-4f31-9210-a625fa665e23"),
             "upload_time": "2000-08-24 00:00:00",
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
     ]
 

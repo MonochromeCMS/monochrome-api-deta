@@ -96,23 +96,54 @@ class TestMangaResponse(BaseModelTest):
         "version": 2,
         "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
         "create_time": datetime(2000, 8, 24),
+        "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
     }
     wrong_data = [
         # Missing fields
-        {"id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"), "create_time": datetime(2000, 8, 24)},
-        {"version": 2, "create_time": datetime(2000, 8, 24)},
+        {
+            "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
+            "create_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
+        {
+            "version": 2,
+            "create_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
         {
             "version": 2,
             "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
         },
     ]
     irregular_data = [
         # String to number
-        {"version": "2", "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"), "create_time": datetime(2000, 8, 24)},
+        {
+            "version": "2",
+            "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
+            "create_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
         # String to UUID
-        {"version": 2, "id": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978", "create_time": datetime(2000, 8, 24)},
+        {
+            "version": 2,
+            "id": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978",
+            "create_time": datetime(2000, 8, 24),
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
+        {
+            "version": 2,
+            "id": UUID("1e01d7f6-c4e1-4102-9dd0-a6fccc065978"),
+            "create_time": datetime(2000, 8, 24),
+            "owner_id": "3f01d7dd-c4e1-4102-9dd0-a6fccc065978",
+        },
         # String to datetime
-        {"version": 2, "id": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978", "create_time": "2000-08-24 00:00:00"},
+        {
+            "version": 2,
+            "id": "1e01d7f6-c4e1-4102-9dd0-a6fccc065978",
+            "create_time": "2000-08-24 00:00:00",
+            "owner_id": UUID("3f01d7dd-c4e1-4102-9dd0-a6fccc065978"),
+        },
     ]
 
 
