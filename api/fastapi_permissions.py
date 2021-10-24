@@ -11,8 +11,7 @@ from itertools import chain
 from inspect import iscoroutinefunction
 from typing import Any
 
-from fastapi import Depends, HTTPException
-from starlette.status import HTTP_403_FORBIDDEN
+from fastapi import Depends, HTTPException, status
 
 # constants
 
@@ -48,17 +47,24 @@ ALOW_ALL = (Allow, Everyone, All)  # acl shorthand, allows everything
 # the exception that will be raised, if no sufficient permissions are found
 # can be configured in the configure_permissions() function
 permission_exception = HTTPException(
-    status_code=HTTP_403_FORBIDDEN,
+    status_code=status.HTTP_403_FORBIDDEN,
     detail="Insufficient permissions",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+authentificated_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Not authentificated",
     headers={"WWW-Authenticate": "Bearer"},
 )
 
 
 def configure_permissions(
     active_principals_func: Any,
-    exception: HTTPException = permission_exception,
+        perm_exception: HTTPException = permission_exception,
+        auth_exception: HTTPException = authentificated_exception,
 ):
-    """sets the basic configuration for the permissions system
+    """sets the basic configuration for the permissions' system
     active_principals_func:
         a dependency that returns the principals of the current active user
     permission_exception:
@@ -71,7 +77,8 @@ def configure_permissions(
     return partial(
         permission_dependency_factory,
         active_principals_func=active_principals_func,
-        exception=exception,
+        perm_exception=perm_exception,
+        auth_exception=auth_exception,
     )
 
 
@@ -79,7 +86,8 @@ def permission_dependency_factory(
     permission: str,
     resource: Any,
     active_principals_func: Any,
-    exception: HTTPException,
+    auth_exception: HTTPException,
+    perm_exception: HTTPException,
 ):
     """returns a function that acts as a dependable for checking permissions
     This is the actual function used for creating the permission dependency,
@@ -106,7 +114,9 @@ def permission_dependency_factory(
     async def permission_dependency(resource=dependable_resource, principals=active_principals_func):
         if await has_permission(principals, permission, resource):
             return resource
-        raise exception
+        if Authenticated not in principals:
+            raise auth_exception
+        raise perm_exception
 
     return Depends(permission_dependency)
 
