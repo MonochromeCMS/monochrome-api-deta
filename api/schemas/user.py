@@ -45,3 +45,9 @@ class UserResponse(User):
 
 class UsersResponse(PaginationResponse):
     results: List[UserResponse]
+
+
+class UserFilters(CamelModel):
+    role: Optional[Role]
+    email: Optional[EmailStr]
+    id: Optional[UUID]
