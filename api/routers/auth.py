@@ -27,7 +27,7 @@ auth_responses = {
     403: {
         "description": "User doesn't have the permission to perform this action",
         **PermissionsHTTPException.open_api(),
-    }
+    },
 }
 
 settings = get_settings()

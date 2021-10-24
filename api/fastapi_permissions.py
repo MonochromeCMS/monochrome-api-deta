@@ -61,8 +61,8 @@ authentificated_exception = HTTPException(
 
 def configure_permissions(
     active_principals_func: Any,
-        perm_exception: HTTPException = permission_exception,
-        auth_exception: HTTPException = authentificated_exception,
+    perm_exception: HTTPException = permission_exception,
+    auth_exception: HTTPException = authentificated_exception,
 ):
     """sets the basic configuration for the permissions' system
     active_principals_func:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from .auth import auth_responses, Permission
 from ..models.settings import Settings
