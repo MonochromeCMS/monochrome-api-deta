@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from ..fs import media
