@@ -1,13 +1,17 @@
+from os import path
+from tempfile import TemporaryFile
 from typing import Optional
 from uuid import UUID
+from PIL import Image
 
-from fastapi import APIRouter, Depends, Query, status, Request
+from fastapi import APIRouter, Depends, Query, status, Request, File, UploadFile
 
 from ..app import limiter
 from ..config import get_settings
 from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
 from .auth import is_connected, get_password_hash, auth_responses, Permission, get_active_principals
 from ..fastapi_permissions import has_permission
+from ..fs import media
 from ..models.user import User, Role
 from ..schemas.user import UserSchema, UserResponse, UsersResponse, UserFilters, UserRegisterSchema
 
@@ -200,3 +204,38 @@ async def search_users(
         "results": page,
         "total": count,
     }
+
+
+def save_avatar(user_id: UUID, file: File):
+    im = Image.open(file)
+    with TemporaryFile() as f:
+        im.convert("RGB").save(f, "JPEG")
+        f.seek(0)
+        media.put(path.join("users", f"{user_id}.jpg"), f)
+
+
+put_avatar_responses = {
+    **get_responses,
+    400: {
+        "description": "The avatar isn't a valid image",
+        **BadRequestHTTPException.open_api("<image_name> is not an image"),
+    },
+    200: {
+        "description": "The edited user",
+        "model": UserResponse,
+    },
+}
+
+
+@router.put("/{user_id}/avatar", responses=put_avatar_responses)
+async def set_manga_cover(
+    payload: UploadFile = File(...),
+    user: User = Permission("edit", _get_user),
+):
+    if not payload.content_type.startswith("image/"):
+        raise BadRequestHTTPException(f"'{payload.filename}' is not an image")
+
+    save_avatar(user.id, payload.file)
+    await user.save()
+
+    return user
