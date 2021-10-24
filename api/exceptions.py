@@ -106,3 +106,16 @@ class AuthFailedHTTPException(HTTPException):
     @staticmethod
     def open_api(msg: Optional[str] = None):
         return _open_api("Could not validate credentials", msg)
+
+
+class PermissionsHTTPException(HTTPException):
+    def __init__(self, msg: Optional[str] = None):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=msg if msg else "Insufficient permissions",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    @staticmethod
+    def open_api(msg: Optional[str] = None):
+        return _open_api("Insufficient permissions", msg)
