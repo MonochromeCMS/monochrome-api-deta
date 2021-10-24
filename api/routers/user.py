@@ -151,15 +151,14 @@ if settings.allow_registration:
         },
     }
 
-
     @router.post(
         "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, responses=register_responses
     )
     @limiter.limit("1/day")
     async def register_user(
-            request: Request,
-            payload: UserRegisterSchema,
-            _: User = Permission("register", User.__class_acl__),
+        request: Request,
+        payload: UserRegisterSchema,
+        _: User = Permission("register", User.__class_acl__),
     ):
         hashed_pwd = get_password_hash(payload.password)
 
@@ -193,9 +192,7 @@ async def search_users(
     user_id: Optional[UUID] = None,
     _: User = Permission("view", User.__class_acl__),
 ):
-    count, page = await User.search(
-        username, UserFilters(role=role, email=email, id=user_id), limit, offset
-    )
+    count, page = await User.search(username, UserFilters(role=role, email=email, id=user_id), limit, offset)
 
     return {
         "offset": offset,
