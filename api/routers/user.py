@@ -1,14 +1,15 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, Request
 
+from ..app import limiter
 from ..config import get_settings
 from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
 from .auth import is_connected, get_password_hash, auth_responses, Permission, get_active_principals
 from ..fastapi_permissions import has_permission
 from ..models.user import User, Role
-from ..schemas.user import UserSchema, UserResponse, UsersResponse, UserFilters
+from ..schemas.user import UserSchema, UserResponse, UsersResponse, UserFilters, UserRegisterSchema
 
 settings = get_settings()
 
@@ -136,6 +137,41 @@ async def create_user(payload: UserSchema, _: User = Permission("create", User._
     await user.save()
 
     return user
+
+
+if settings.allow_registration:
+    register_responses = {
+        400: {
+            "description": "Existing user",
+            **BadRequestHTTPException.open_api("That username or email is already in use"),
+        },
+        201: {
+            "description": "The created user",
+            "model": UserResponse,
+        },
+    }
+
+
+    @router.post(
+        "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, responses=register_responses
+    )
+    @limiter.limit("1/day")
+    async def register_user(
+            request: Request,
+            payload: UserRegisterSchema,
+            _: User = Permission("register", User.__class_acl__),
+    ):
+        hashed_pwd = get_password_hash(payload.password)
+
+        if await User.from_username_email(payload.username, payload.email):
+            raise BadRequestHTTPException("That username or email is already in use")
+
+        data = payload.dict()
+        data.pop("password")
+        user = User(**data, role=Role.user, hashed_password=hashed_pwd)
+        await user.save()
+
+        return user
 
 
 get_all_responses = {

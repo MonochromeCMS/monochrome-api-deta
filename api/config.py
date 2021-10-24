@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     temp_path: str = "/tmp"
 
     max_page_limit: int = Field(50, gt=0)
+    allow_registration: bool = False
 
 
 @lru_cache()
