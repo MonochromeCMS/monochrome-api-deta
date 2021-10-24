@@ -86,7 +86,22 @@ TEMP_PATH = "/tmp"
 
 # For pagination, the maximum of elements per request, has to be positive
 MAX_PAGE_LIMIT = 50
+# Allows anyone to create a "user" account
+ALLOW_REGISTRATION=False
 ```
+
+## Roles
+Each used can have one of different roles, this is done to have a sort of hierarchy:
+### Admin
+The role the `create-admin` command gives to the user,
+it's the highest role and grants all the permissions (user and website management, upload and editing of manga and chapters)
+### Uploader
+This role can create new manga and upload new chapters, but can only edit/delete those
+that they have created themselves.
+### User
+This user can only update its own user for now, it'll become more useful once other features are added to Monochrome
+(comments, notifications, reading progress...)
+You can already allow registrations via the respective env var, but it isn't recommended until meaningful features are added.
 
 ## Tools used
 * FastAPI

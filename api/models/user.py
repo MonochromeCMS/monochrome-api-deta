@@ -4,7 +4,7 @@ from typing import Optional, ClassVar, Union
 from pydantic import EmailStr, BaseModel
 
 from .base import DetaBase
-from ..fastapi_permissions import Allow
+from ..fastapi_permissions import Allow, Everyone
 
 
 class Role(str, Enum):
@@ -31,6 +31,7 @@ class User(DetaBase):
     @classmethod
     def __class_acl__(cls):
         return (
+            (Allow, [Everyone], "register"),
             (Allow, ["role:admin"], "create"),
             (Allow, ["role:admin"], "view"),
             (Allow, ["role:admin"], "edit"),
