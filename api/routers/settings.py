@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from .auth import is_connected, auth_responses, Permission
+from .auth import auth_responses, Permission
 from ..models.settings import Settings
 from ..schemas.settings import SettingsSchema
 

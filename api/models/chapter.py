@@ -1,7 +1,7 @@
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, ClassVar
-from pydantic import Field, PrivateAttr
+from pydantic import Field
 
 from .base import DetaBase
 from .manga import Manga
