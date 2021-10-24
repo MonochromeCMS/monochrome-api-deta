@@ -4,7 +4,7 @@ from uuid import UUID
 from os import path
 from tempfile import TemporaryFile
 from typing import Optional, List
-from fastapi import APIRouter, Depends, status, Query, File, UploadFile, BackgroundTasks
+from fastapi import APIRouter, Depends, status, Query, File, UploadFile
 
 from .auth import get_connected_user, auth_responses, Permission, get_active_principals
 from ..fastapi_permissions import has_permission, permission_exception
@@ -149,7 +149,7 @@ put_cover_responses = {
     **get_responses,
     400: {
         "description": "The cover isn't a valid image",
-        **BadRequestHTTPException.open_api("image_name is not an image"),
+        **BadRequestHTTPException.open_api("<image_name> is not an image"),
     },
     200: {
         "description": "The edited manga",
@@ -159,11 +159,11 @@ put_cover_responses = {
 
 
 @router.put("/{manga_id}/cover", responses=put_cover_responses)
-async def set_manga_cover(
-    tasks: BackgroundTasks, payload: UploadFile = File(...), manga: Manga = Permission("edit", _get_manga)
-):
+async def set_manga_cover(payload: UploadFile = File(...), manga: Manga = Permission("edit", _get_manga)):
     if not payload.content_type.startswith("image/"):
         raise BadRequestHTTPException(f"'{payload.filename}' is not an image")
 
-    tasks.add_task(save_cover, manga.id, payload.file)
+    save_cover(manga.id, payload.file)
+    await manga.save()
+
     return manga
