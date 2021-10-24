@@ -119,7 +119,7 @@ class TestUserResponse(BaseModelTest):
             "id": UUID("6901d7f6-c4e1-4200-9dd0-a6fccc065978"),
             "version": 2,
             "role": "RandomRoleThatDoesntExist",
-        }
+        },
     ]
     irregular_data = [
         # String to uuid
@@ -165,7 +165,7 @@ class TestUserFilters(BaseModelTest):
             "id": UUID("6901d7f6-c4e1-4200-9dd0-a6fccc065978"),
             "email": "user@example.com",
             "role": None,
-        }
+        },
     ]
     wrong_data = [
         # Bad email
