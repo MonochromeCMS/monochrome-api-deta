@@ -14,7 +14,7 @@ from ..fastapi_permissions import (
 )
 from ..app import limiter
 from ..config import get_settings
-from ..exceptions import AuthFailedHTTPException
+from ..exceptions import AuthFailedHTTPException, PermissionsHTTPException
 from ..schemas.user import TokenResponse
 from ..models.user import User
 
@@ -24,6 +24,10 @@ auth_responses = {
         "description": "User isn't authenticated",
         **AuthFailedHTTPException.open_api(),
     },
+    403: {
+        "description": "User doesn't have the permission to perform this action",
+        **PermissionsHTTPException.open_api(),
+    }
 }
 
 settings = get_settings()
