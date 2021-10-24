@@ -1,7 +1,7 @@
 from enum import Enum
 from uuid import UUID
-from typing import Optional, ClassVar
-from pydantic import EmailStr
+from typing import Optional, ClassVar, Union
+from pydantic import EmailStr, BaseModel
 
 from .base import DetaBase
 from ..fastapi_permissions import Allow
@@ -60,5 +60,11 @@ class User(DetaBase):
             return None
 
     @classmethod
-    async def all(cls, limit: int = 20, offset: int = 0):
-        return await cls.pagination(None, limit, offset, lambda x: getattr(x, "username"))
+    async def search(cls, name: str = "", filters: Union[BaseModel, None] = None, limit: int = 20, offset: int = 0):
+        if filters is not None:
+            filters = {k: v for k, v in filters.dict().items() if v}
+        else:
+            filters = {}
+        if name:
+            filters["username?contains"] = name
+        return await cls.pagination(filters, limit, offset, lambda x: getattr(x, "username"))
