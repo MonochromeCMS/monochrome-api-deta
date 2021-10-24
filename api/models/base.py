@@ -69,6 +69,7 @@ class DetaBase(BaseModel):
     @classmethod
     async def fetch(cls, query, limit: int = inf):
         async with async_client(cls.db_name) as db:
+            query = jsonable_encoder(query)
             res = await db.fetch(query, limit=min(limit, settings.max_page_limit))
             all_items = res.items
 
