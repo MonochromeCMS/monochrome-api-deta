@@ -228,7 +228,7 @@ put_avatar_responses = {
 
 
 @router.put("/{user_id}/avatar", responses=put_avatar_responses)
-async def set_manga_cover(
+async def set_avatar(
     payload: UploadFile = File(...),
     user: User = Permission("edit", _get_user),
 ):

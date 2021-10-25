@@ -34,6 +34,7 @@ class DetaBase(BaseModel):
 
     async def save(self):
         async with async_client(self.db_name) as db:
+            self.version += 1
             await db.put(jsonable_encoder(self))
 
     async def delete(self):
