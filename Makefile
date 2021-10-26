@@ -9,7 +9,7 @@ user ?= `id -u`
 dir ?= `pwd`
 
 DOCKER_RUN = docker run --env-file .env --rm -v "`pwd`:/vol" -w /vol
-DOCKER_TEST_RUN = docker run --env-file .env --rm
+DOCKER_TEST_RUN = docker run --env-file .env --rm -e DETA_PROJECT_KEY=$(DETA_PROJECT_KEY) 
 
 .PHONY: help
 help: ## Show this help
@@ -60,11 +60,9 @@ ifneq ($(native),0)
 	flake8 ./api
 else
 ifneq ($(test_exit),0)
-	$(DOCKER_RUN) $(tag) black ./api --check --diff
-	$(DOCKER_RUN) $(tag) flake8 ./api
+	$(DOCKER_RUN) $(tag) lint
 else
-	-$(DOCKER_RUN) $(tag) black ./api --check --diff
-	-$(DOCKER_RUN) $(tag) flake8 ./api
+	-$(DOCKER_RUN) $(tag) lint
 endif
 endif
 
@@ -98,9 +96,8 @@ _test_setup: build
 	@$(DOCKER_TEST_RUN) -e MONOCHROME_TEST=1 $(tag) create_admin
 
 .PHONY: _test
-.ONESHELL: _test
 _test:
-	-@echo Running backend tests...
+	@echo Running backend tests...
 ifeq ($(test_exit),1)
 	$(DOCKER_TEST_RUN) $(tag) python -m pytest --cov api --cov-config=/api/setup.cfg -v api
 else

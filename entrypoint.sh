@@ -3,6 +3,14 @@
 set -eo pipefail
 shopt -s nullglob
 
+# Linting
+if [ "$1" = "lint" ]; then
+    echo "Verifying style..."
+    black ./api --check --diff
+    flake8 ./api
+    exit
+fi
+
 # Deta setup
 if [ -z ${DETA_PROJECT_KEY+x} ]; then
   echo "DETA_PROJECT_KEY needs to be defined!"
