@@ -1,8 +1,9 @@
-from typing import Optional, ClassVar
+from typing import Optional, ClassVar, List, Union
 from uuid import UUID
 
 from .base import DetaBase
 from ..fastapi_permissions import Allow
+from ..exceptions import NotFoundHTTPException
 
 
 class UploadedBlob(DetaBase):
@@ -35,20 +36,21 @@ class UploadSession(DetaBase):
         )
 
     async def delete(self):
-        blobs = await self.get_blobs()
+        blobs = await UploadedBlob.fetch({"session_id": str(self.id)})
         await DetaBase.delete_many(blobs)
         await super().delete()
-
-    async def get_blobs(self):
-        return await UploadedBlob.fetch({"session_id": str(self.id)})
-
-    @classmethod
-    async def find(cls, *args, **kwargs):
-        session = await super().find(*args, **kwargs)
-        blobs = await session.get_blobs()
-        return session, blobs
 
     @classmethod
     async def flush(cls):
         sessions = await cls.fetch({})
         return await DetaBase.delete_many(sessions)
+
+
+class UploadSessionBlobs(UploadSession):
+    blobs: List[UploadedBlob]
+
+    @classmethod
+    async def find(cls, _id: Union[UUID, str], exception=NotFoundHTTPException()):
+        session = await UploadSession.find(_id, exception)
+        blobs = await UploadedBlob.fetch({"session_id": str(_id)})
+        return cls(**session.dict(), blobs=blobs)

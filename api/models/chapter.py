@@ -1,10 +1,11 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Optional, ClassVar
+from typing import Optional, ClassVar, Union
 from pydantic import Field
 
 from .base import DetaBase
 from .manga import Manga
+from ..exceptions import NotFoundHTTPException
 from ..fastapi_permissions import Allow, Everyone
 
 
@@ -44,13 +45,6 @@ class Chapter(DetaBase):
         await super().save()
 
     @classmethod
-    async def find_detailed(cls, *args, **kwargs):
-        chapter = await cls.find(*args, **kwargs)
-        chapter = chapter.dict()
-        chapter["manga"] = await Manga.find(chapter["manga_id"])
-        return chapter
-
-    @classmethod
     async def latest(cls, limit: int = 20, offset: int = 0):
         count, results = await cls.pagination({}, limit, offset, lambda x: x.upload_time, True)
 
@@ -73,3 +67,13 @@ class Chapter(DetaBase):
     async def get_groups(cls):
         groups = await ScanGroup.fetch({})
         return [group.id for group in groups]
+
+
+class DetailedChapter(Chapter):
+    manga: Manga
+
+    @classmethod
+    async def find(cls, _id: Union[UUID, str], exception=NotFoundHTTPException()):
+        chapter = await Chapter.find(_id, exception)
+        manga = await Manga.find(chapter.manga_id)
+        return cls(**chapter.dict(), manga=manga)

@@ -7,7 +7,7 @@ from .auth import is_connected, auth_responses, Permission
 from ..fs import media
 from ..exceptions import NotFoundHTTPException
 from ..config import get_settings
-from ..models.chapter import Chapter
+from ..models.chapter import Chapter, DetailedChapter
 from ..schemas.chapter import ChapterSchema, ChapterResponse, LatestChaptersResponse, DetailedChapterResponse
 
 
@@ -21,7 +21,7 @@ async def _get_chapter(chapter_id: UUID):
 
 
 async def _get_detailed_chapter(chapter_id: UUID):
-    return await Chapter.find_detailed(chapter_id, NotFoundHTTPException("Chapter not found"))
+    return await DetailedChapter.find(chapter_id, NotFoundHTTPException("Chapter not found"))
 
 
 @router.get("", response_model=LatestChaptersResponse, dependencies=[Permission("view", Chapter.__class_acl__)])
@@ -51,7 +51,7 @@ get_responses = {
 
 
 @router.get("/{chapter_id}", response_model=DetailedChapterResponse, responses=get_responses)
-async def get_chapter(chapter: Chapter = Permission("view", _get_detailed_chapter)):
+async def get_chapter(chapter: DetailedChapter = Permission("view", _get_detailed_chapter)):
     return chapter
 
 
