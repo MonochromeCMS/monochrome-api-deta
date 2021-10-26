@@ -9,8 +9,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Create .env
         run: cp .env.example .env
-      - name: Pull images
-        run: docker pull docker.io/postgres:13-alpine
+      - name: Add testing key
+        run: echo DETA_PROJECT_KEY=${{ secrets.DETA_TEST_KEY }} >> .env
       - name: Cache images
         uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
