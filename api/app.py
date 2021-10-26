@@ -15,7 +15,7 @@ global_settings = get_settings()
 
 log = logging.getLogger(__name__)
 
-app = FastAPI(title="Monochrome", version="1.4.0")
+app = FastAPI(title="Monochrome", version="1.4.0b")
 
 if getenv("DETA_RUNTIME"):
     from deta import App
