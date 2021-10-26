@@ -11,11 +11,13 @@ jobs:
         run: cp .env.example .env
       - name: Add testing key
         run: echo DETA_PROJECT_KEY=${{ secrets.DETA_TEST_KEY }} >> .env
-      - name: Cache images
-        run: docker pull ghcr.io/monochromecms/monochrome-api-deta:latest
       - name: Building the image
-        run: make build
+        uses: docker/build-push-action@v2
+        with:
+          tags: ${{ secrets.IMAGE_TAG }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Backend tests
-        run: make test_exit=1 _test
+        run: make tag=${{ secrets.IMAGE_TAG }} test_exit=1 _test
       - name: Linting
-        run: make test_exit=1 lint
+        run: make tag=${{ secrets.IMAGE_TAG }} test_exit=1 lint
