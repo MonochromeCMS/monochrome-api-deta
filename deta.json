@@ -31,6 +31,12 @@
             "description": "Maximum amount of elements per page",
             "value": "50",
             "required": false
+        },
+        {
+            "key": "ALLOW_REGISTRATION",
+            "description": "Enables user registration",
+            "value": "false",
+            "required": false
         }
     ]
 }
