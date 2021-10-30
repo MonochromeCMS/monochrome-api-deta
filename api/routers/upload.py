@@ -144,7 +144,7 @@ def validate_image_extension(name: str):
 
 
 @router.post(
-    "/{upload_id}",
+    "/{session_id}",
     status_code=status.HTTP_201_CREATED,
     response_model=List[UploadedBlobResponse],
     responses=post_blobs_responses,
@@ -216,7 +216,7 @@ delete_responses = {
 }
 
 
-@router.delete("/{upload_id}", responses=delete_responses)
+@router.delete("/{session_id}", responses=delete_responses)
 async def delete_upload_session(
     tasks: BackgroundTasks, session: UploadSessionBlobs = Permission("edit", _get_upload_session_blobs)
 ):
@@ -261,7 +261,7 @@ post_commit_responses = {
 }
 
 
-@router.post("/{upload_id}/commit", response_model=ChapterResponse, responses=post_commit_responses)
+@router.post("/{session_id}/commit", response_model=ChapterResponse, responses=post_commit_responses)
 async def commit_upload_session(
     payload: CommitUploadSession, tasks: BackgroundTasks, session=Permission("edit", _get_upload_session_blobs)
 ):
