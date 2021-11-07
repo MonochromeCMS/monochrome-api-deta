@@ -156,6 +156,7 @@ async def upload_pages_to_upload_session(
         "application/x-7z-compressed",
         "application/x-xz",
         "application/zip",
+        "application/x-zip-compressed",
         "application/x-rar-compressed",
         "application/vnd.rar",
     )
