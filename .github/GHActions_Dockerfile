@@ -6,6 +6,7 @@ ARG BASE_IMAGE
 ARG BUILD_DATE
 ARG IMAGE_VERSION
 ARG GIT_COMMIT
+ARG APP_TAG
 ARG RELEASE_TAG
 
 LABEL maintainer="MonochromeCMS" \
@@ -19,6 +20,7 @@ LABEL maintainer="MonochromeCMS" \
       org.opencontainers.image.created=$BUILD_DATE \
       org.opencontainers.image.version=$IMAGE_VERSION \
       "monochrome.git_commit"=$GIT_COMMIT \
+      "monochrome.app_tag"=$APP_TAG \
       "monochrome.release_tag"=$RELEASE_TAG \
       org.opencontainers.image.licenses="AGPL-3.0"
 
