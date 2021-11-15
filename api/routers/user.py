@@ -158,7 +158,7 @@ if settings.allow_registration:
     @router.post(
         "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, responses=register_responses
     )
-    @limiter.limit("1/day")
+    @limiter.limit("1/minute")
     async def register_user(
         request: Request,
         payload: UserRegisterSchema,

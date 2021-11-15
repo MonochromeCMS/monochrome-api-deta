@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from typing import Optional, List
 
 from fastapi_camelcase import CamelModel
@@ -8,8 +9,23 @@ from .base import PaginationResponse
 from ..models.user import Role
 
 
+class TokenContent(CamelModel):
+    typ: str
+    sub: str
+    exp: datetime
+    iat: datetime
+
+    def dict(self, *args, **kwargs):
+        return {**super().dict(*args, **kwargs), "nbf": self.iat}
+
+
+class RefreshToken(CamelModel):
+    token: str
+
+
 class TokenResponse(BaseModel):
     access_token: str = Field(description="JWT Auth token")
+    refresh_token: str = Field(description="JWT Refresh token")
     token_type = Field(
         "bearer",
         const=True,
