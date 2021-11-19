@@ -18,7 +18,7 @@ pyunpack = "*"
 patool = "*"
 fastapi = "*"
 slowapi = "*"
-hypercorn = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 pydantic = {extras = ["email"], version = "*"}
 fastapi_camelcase = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
