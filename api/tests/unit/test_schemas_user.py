@@ -10,16 +10,23 @@ class TestTokenResponse(BaseModelTest):
     schema = sch.TokenResponse
     example_data = {
         "access_token": "ThisIsAToken",
+        "refresh_token": "ThisIsAlsoToken",
         "token_type": "bearer",
     }
     wrong_data = [
         # Missing fields
         {
+            "refresh_token": "ThisIsAlsoToken",
+            "token_type": "bearer",
+        },
+        {
+            "access_token": "ThisIsAToken",
             "token_type": "bearer",
         },
         # Constant
         {
             "access_token": "ThisIsAToken",
+            "refresh_token": "ThisIsAlsoToken",
             "token_type": "NotBearer",
         },
     ]
@@ -27,6 +34,7 @@ class TestTokenResponse(BaseModelTest):
         # Default values
         {
             "access_token": "ThisIsAToken",
+            "refresh_token": "ThisIsAlsoToken",
         }
     ]
 
