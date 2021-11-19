@@ -3,6 +3,13 @@
 set -eo pipefail
 shopt -s nullglob
 
+# Formatting
+if [ "$1" = "format" ]; then
+    echo "formatting style..."
+    black ./api
+    exit
+fi
+
 # Linting
 if [ "$1" = "lint" ]; then
     echo "Verifying style..."

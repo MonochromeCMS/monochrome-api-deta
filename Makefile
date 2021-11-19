@@ -71,7 +71,7 @@ format:  ## Format project code
 ifneq ($(native),0)
 	black ./api
 else
-	$(DOCKER_RUN) $(tag) black ./api
+	$(DOCKER_RUN) $(tag) format
 endif
 
 .PHONY: secret
