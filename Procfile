@@ -1,1 +1,1 @@
-web: hypercorn main:app -b 0.0.0.0:$PORT
+web: uvicorn main:app --host 0.0.0.0 --port $PORT
