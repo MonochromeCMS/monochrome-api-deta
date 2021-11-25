@@ -46,12 +46,17 @@ FROM builder as final
 ENV PYTHONUNBUFFERED=1
 WORKDIR /
 
+# TINI INSTALLATION
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 # COPY APP SOURCE CODE
 COPY ./api /api
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x entrypoint.sh
+ENTRYPOINT ["/tini", "--", "/entrypoint.sh"]
 
 ENV PORT 3000
 EXPOSE 3000
-ENTRYPOINT ["/entrypoint.sh"]
 CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT
