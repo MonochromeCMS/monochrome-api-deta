@@ -11,6 +11,10 @@ class UploadedBlob(DetaBase):
     session_id: UUID
     db_name: ClassVar = "blobs"
 
+    @classmethod
+    async def from_session(cls, session_id: UUID):
+        return await UploadedBlob.fetch({"session_id": str(session_id)})
+
 
 class UploadSession(DetaBase):
     owner_id: Optional[UUID]

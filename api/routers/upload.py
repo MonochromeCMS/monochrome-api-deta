@@ -172,7 +172,6 @@ async def upload_pages_to_upload_session(
     blobs = []
 
     for file in payload:
-        file_blobs = []
         if file.content_type in compressed_formats:
             zip_path = path.join(session_path, f"zip/{file.filename}")
             async with open(zip_path, "wb") as out_file:
@@ -189,6 +188,7 @@ async def upload_pages_to_upload_session(
                 await out_file.write(content)
             files = (file.filename,)
 
+        file_blobs = []
         for f in files:
             file_blob = UploadedBlob(session_id=session.id, name=f)
             await file_blob.save()
@@ -349,3 +349,84 @@ async def delete_page_from_upload_session(
     await blob.delete()
     tasks.add_task(delete_session_images, (file_id,))
     return "OK"
+
+
+def concat_and_cut_images(blob_ids: Iterable[UUID]):
+    images = [Image.open(path.join("blobs", f"{blob_id}.jpg")) for blob_id in blob_ids]
+    height = sum(image.height for image in images)
+
+    if not all((images[0].width == image.width for image in images)):
+        raise BadRequestHTTPException("All the images should have the same width")
+
+    joined = Image.new('RGB', (images[0].width, height))
+    running_height = 0
+    for image in images:
+        joined.paste(image, (0, running_height))
+        image.close()
+        running_height += image.height
+
+    amount_parts = joined.height // (2 * joined.width) + 1
+    parts = []
+    for i in range(amount_parts):
+        end_y = min(height, 2* joined.width * (i + 1))
+        part = joined.crop((0, 2 * joined.width * i, joined.width, end_y))
+        parts.append(part)
+
+    return parts
+
+
+slice_blobs_responses = {
+    **auth_responses,
+    400: {
+        "description": "There is a problem with the provided page order",
+        **BadRequestHTTPException.open_api("Some pages don't belong to this session")
+    },
+    404: {
+        "description": "The upload session couldn't be found",
+        **NotFoundHTTPException.open_api("Session not found"),
+    },
+    201: {
+        "description": "The created blobs",
+        "model": List[UploadedBlobResponse],
+    },
+}
+
+
+@router.post(
+    "/{session_id}/slice",
+    status_code=status.HTTP_201_CREATED,
+    response_model=List[UploadedBlobResponse],
+    responses=slice_blobs_responses,
+)
+async def slice_pages_in_upload_session(
+    payload: List[UUID],
+    tasks: BackgroundTasks,
+    session=Permission("edit", _get_upload_session_blobs),
+):
+    blobs = [b.id for b in session.blobs]
+
+    if not len(payload) > 0:
+        raise BadRequestHTTPException("At least one page needs to be provided")
+    if len(set(payload).difference(blobs)) > 0:
+        raise BadRequestHTTPException("Some pages don't belong to this session")
+
+    parts = concat_and_cut_images(payload)
+
+    for i, part in enumerate(parts):
+        file_blob = UploadedBlob(session_id=session.id, name=f"slice_{i+1}.jpg")
+        await file_blob.save()
+
+        with TemporaryFile() as f:
+            part.save(f, "JPEG")
+            f.seek(0)
+            media.put(path.join("blobs", f"{file_blob.id}.jpg"), f)
+
+        part.close()
+
+    for blob_id in payload:
+        blob: UploadedBlob = await UploadedBlob.find(blob_id)
+        await blob.delete()
+
+    tasks.add_task(delete_session_images, payload)
+
+    return await UploadedBlob.from_session(session.id)
