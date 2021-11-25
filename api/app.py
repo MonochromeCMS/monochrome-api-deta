@@ -1,6 +1,7 @@
 import logging
 
 from os import getenv
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, Request
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -16,6 +17,8 @@ global_settings = get_settings()
 log = logging.getLogger(__name__)
 
 app = FastAPI(title="Monochrome", version="1.4.3")
+
+Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app, tags=["Status"])
 
 if getenv("DETA_RUNTIME"):
     from deta import App
