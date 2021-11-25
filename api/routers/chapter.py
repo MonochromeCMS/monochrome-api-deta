@@ -9,7 +9,7 @@ from ..fs import media
 from ..exceptions import NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter, DetailedChapter
-from ..models.comment import Comment
+from ..models.comment import DetailedComment
 from ..schemas.chapter import ChapterSchema, ChapterResponse, LatestChaptersResponse, DetailedChapterResponse
 from ..schemas.comment import ChapterCommentsResponse
 
@@ -115,7 +115,7 @@ async def get_chapter_comments(
     user_principals=Depends(get_active_principals),
 ):
     if await has_permission(user_principals, "view", Chapter.__class_acl__()):
-        count, page = await Comment.from_chapter(chapter.id, limit, offset)
+        count, page = await DetailedComment.from_chapter(chapter.id, limit, offset)
         return {
             "offset": offset,
             "limit": limit,

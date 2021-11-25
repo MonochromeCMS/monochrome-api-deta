@@ -30,7 +30,7 @@ ifneq ($(native),0)
 	@export `grep -v '^#' .env | xargs -d '\n'`
 	hypercorn main:app -b 0.0.0.0:3000 --reload
 else
-	docker run --rm --name monochrome-api -p 3000:3000 --env-file .env $(tag)
+	docker run --rm -ti --name monochrome-api -p 3000:3000 --env-file .env $(tag)
 endif
 
 .PHONY: logs

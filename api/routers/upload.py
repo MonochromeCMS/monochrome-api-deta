@@ -351,8 +351,22 @@ async def delete_page_from_upload_session(
     return "OK"
 
 
-def concat_and_cut_images(blob_ids: Iterable[UUID]):
-    images = [Image.open(path.join("blobs", f"{blob_id}.jpg")) for blob_id in blob_ids]
+async def concat_and_cut_images(blob_ids: Iterable[UUID]):
+    images = []
+    temp_files = []
+
+    for blob_id in blob_ids:
+        big_file = media.get(path.join("blobs", f"{blob_id}.jpg"))
+
+        f = TemporaryFile()
+        for chunk in big_file.iter_chunks(4096):
+            f.write(chunk)
+        big_file.close()
+        f.seek(0)
+
+        images.append(Image.open(f))
+        temp_files.append(f)
+
     height = sum(image.height for image in images)
 
     if not all((images[0].width == image.width for image in images)):
@@ -360,9 +374,10 @@ def concat_and_cut_images(blob_ids: Iterable[UUID]):
 
     joined = Image.new('RGB', (images[0].width, height))
     running_height = 0
-    for image in images:
+    for i, image in enumerate(images):
         joined.paste(image, (0, running_height))
         image.close()
+        temp_files[i].close()
         running_height += image.height
 
     amount_parts = joined.height // (2 * joined.width) + 1
@@ -410,7 +425,7 @@ async def slice_pages_in_upload_session(
     if len(set(payload).difference(blobs)) > 0:
         raise BadRequestHTTPException("Some pages don't belong to this session")
 
-    parts = concat_and_cut_images(payload)
+    parts = await concat_and_cut_images(payload)
 
     for i, part in enumerate(parts):
         file_blob = UploadedBlob(session_id=session.id, name=f"slice_{i+1}.jpg")
