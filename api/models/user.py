@@ -41,6 +41,14 @@ class User(DetaBase):
     def principals(self):
         return [f"user:{self.id}", f"role:{self.role}"]
 
+    async def delete(self):
+        from .comment import Comment
+
+        chapters = await Comment.fetch({"author_id": str(self.id)})
+
+        await DetaBase.delete_many(chapters)
+        await super().delete()
+
     @classmethod
     async def from_username_email(cls, username_email: str, mail: str = "", ignore_user: UUID = None):
         if mail == "":

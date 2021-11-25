@@ -3,13 +3,15 @@ from uuid import UUID
 from os import path
 from fastapi import APIRouter, Depends, Query
 
-from .auth import is_connected, auth_responses, Permission
+from .auth import is_connected, auth_responses, Permission, get_active_principals
+from ..fastapi_permissions import has_permission, permission_exception
 from ..fs import media
 from ..exceptions import NotFoundHTTPException
 from ..config import get_settings
 from ..models.chapter import Chapter, DetailedChapter
+from ..models.comment import Comment
 from ..schemas.chapter import ChapterSchema, ChapterResponse, LatestChaptersResponse, DetailedChapterResponse
-
+from ..schemas.comment import ChapterCommentsResponse
 
 settings = get_settings()
 
@@ -94,3 +96,31 @@ async def update_chapter(
 ):
     await chapter.update(**payload.dict())
     return chapter
+
+
+get_comments_responses = {
+    **get_responses,
+    200: {
+        "description": "The chapter's comments",
+        "model": ChapterCommentsResponse,
+    },
+}
+
+
+@router.get("/{chapter_id}/comments", response_model=ChapterCommentsResponse, responses=get_comments_responses)
+async def get_chapter_comments(
+    limit: Optional[int] = Query(10, ge=1, le=settings.max_page_limit),
+    offset: Optional[int] = Query(0, ge=0),
+    chapter: Chapter = Permission("view", _get_chapter),
+    user_principals=Depends(get_active_principals),
+):
+    if await has_permission(user_principals, "view", Chapter.__class_acl__()):
+        count, page = await Comment.from_chapter(chapter.id, limit, offset)
+        return {
+            "offset": offset,
+            "limit": limit,
+            "results": page,
+            "total": count,
+        }
+    else:
+        raise permission_exception

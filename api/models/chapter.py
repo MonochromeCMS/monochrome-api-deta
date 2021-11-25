@@ -44,6 +44,14 @@ class Chapter(DetaBase):
         await ScanGroup(id=self.scan_group).save()
         await super().save()
 
+    async def delete(self):
+        from .comment import Comment
+
+        chapters = await Comment.fetch({"chapter_id": str(self.id)})
+
+        await DetaBase.delete_many(chapters)
+        await super().delete()
+
     @classmethod
     async def latest(cls, limit: int = 20, offset: int = 0):
         count, results = await cls.pagination({}, limit, offset, lambda x: x.upload_time, True)
