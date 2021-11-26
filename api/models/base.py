@@ -9,8 +9,7 @@ from pydantic import BaseModel, Field
 
 from ..config import get_settings
 from ..db import deta
-from ..exceptions import (NotFoundHTTPException,
-                          UnprocessableEntityHTTPException)
+from ..exceptions import NotFoundHTTPException, UnprocessableEntityHTTPException
 
 settings = get_settings()
 

@@ -10,8 +10,7 @@ from passlib.context import CryptContext
 from ..app import limiter
 from ..config import get_settings
 from ..exceptions import AuthFailedHTTPException, PermissionsHTTPException
-from ..fastapi_permissions import (Authenticated, Everyone,
-                                   configure_permissions)
+from ..fastapi_permissions import Authenticated, Everyone, configure_permissions
 from ..models.user import User
 from ..schemas.user import RefreshToken, TokenContent, TokenResponse
 

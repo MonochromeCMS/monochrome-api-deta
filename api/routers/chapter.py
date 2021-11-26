@@ -10,11 +10,9 @@ from ..fastapi_permissions import has_permission, permission_exception
 from ..fs import media
 from ..models.chapter import Chapter, DetailedChapter
 from ..models.comment import DetailedComment
-from ..schemas.chapter import (ChapterResponse, ChapterSchema,
-                               DetailedChapterResponse, LatestChaptersResponse)
+from ..schemas.chapter import ChapterResponse, ChapterSchema, DetailedChapterResponse, LatestChaptersResponse
 from ..schemas.comment import ChapterCommentsResponse
-from .auth import (Permission, auth_responses, get_active_principals,
-                   is_connected)
+from .auth import Permission, auth_responses, get_active_principals, is_connected
 
 settings = get_settings()
 

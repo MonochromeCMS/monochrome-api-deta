@@ -4,8 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from .app import app
 from .config import get_settings
-from .routers import (auth, autocomplete, chapter, comment, manga, media,
-                      settings, upload, user)
+from .routers import auth, autocomplete, chapter, comment, manga, media, settings, upload, user
 
 global_settings = get_settings()
 

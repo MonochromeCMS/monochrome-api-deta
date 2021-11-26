@@ -15,8 +15,7 @@ from ..models.manga import Manga
 from ..models.user import User
 from ..schemas.chapter import ChapterResponse
 from ..schemas.manga import MangaResponse, MangaSchema, MangaSearchResponse
-from .auth import (Permission, auth_responses, get_active_principals,
-                   get_connected_user)
+from .auth import Permission, auth_responses, get_active_principals, get_connected_user
 
 settings = get_settings()
 

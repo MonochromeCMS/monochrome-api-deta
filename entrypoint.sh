@@ -7,6 +7,7 @@ shopt -s nullglob
 if [ "$1" = "format" ]; then
     echo "formatting style..."
     black ./api
+    isort ./api
     exit
 fi
 
@@ -15,6 +16,7 @@ if [ "$1" = "lint" ]; then
     echo "Verifying style..."
     black ./api --check --diff
     flake8 ./api
+    isort ./api --check --diff
     exit
 fi
 

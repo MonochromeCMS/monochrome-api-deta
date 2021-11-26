@@ -58,6 +58,7 @@ lint:  ## Lint project code
 ifneq ($(native),0)
 	black ./api --check --diff
 	flake8 ./api
+	isort ./api --check --diff
 else
 ifneq ($(test_exit),0)
 	$(DOCKER_RUN) $(tag) lint
@@ -70,6 +71,7 @@ endif
 format:  ## Format project code
 ifneq ($(native),0)
 	black ./api
+	isort ./api
 else
 	$(DOCKER_RUN) $(tag) format
 endif

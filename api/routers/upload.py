@@ -5,8 +5,7 @@ from typing import Iterable
 from uuid import UUID
 
 from aiofiles import open
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, UploadFile,
-                     status)
+from fastapi import APIRouter, BackgroundTasks, Depends, File, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from PIL import Image
@@ -21,10 +20,8 @@ from ..models.manga import Manga
 from ..models.upload import UploadedBlob, UploadSession, UploadSessionBlobs
 from ..models.user import User
 from ..schemas.chapter import ChapterResponse
-from ..schemas.upload import (CommitUploadSession, UploadedBlobResponse,
-                              UploadSessionResponse, UploadSessionSchema)
-from .auth import (Permission, auth_responses, get_active_principals,
-                   is_connected)
+from ..schemas.upload import CommitUploadSession, UploadedBlobResponse, UploadSessionResponse, UploadSessionSchema
+from .auth import Permission, auth_responses, get_active_principals, is_connected
 
 global_settings = get_settings()
 

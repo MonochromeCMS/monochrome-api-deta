@@ -3,8 +3,7 @@ from tempfile import TemporaryFile
 from typing import Optional
 from uuid import UUID
 
-from fastapi import (APIRouter, Depends, File, Query, Request, UploadFile,
-                     status)
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from PIL import Image
 
 from ..app import limiter
@@ -13,10 +12,8 @@ from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..fastapi_permissions import has_permission
 from ..fs import media
 from ..models.user import Role, User
-from ..schemas.user import (UserFilters, UserRegisterSchema, UserResponse,
-                            UserSchema, UsersResponse)
-from .auth import (Permission, auth_responses, get_active_principals,
-                   get_password_hash, is_connected)
+from ..schemas.user import UserFilters, UserRegisterSchema, UserResponse, UserSchema, UsersResponse
+from .auth import Permission, auth_responses, get_active_principals, get_password_hash, is_connected
 
 settings = get_settings()
 
