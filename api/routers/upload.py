@@ -1,4 +1,4 @@
-from typing import List, Tuple, Iterable
+from typing import Iterable
 from shutil import rmtree
 from os import path, makedirs, remove, listdir
 from tempfile import TemporaryFile
@@ -36,7 +36,7 @@ async def _get_upload_session_blobs(session_id: UUID):
     return await UploadSessionBlobs.find(session_id, NotFoundHTTPException("Session not found"))
 
 
-def copy_chapter_to_session(chapter: Chapter, blobs: List[UUID]):
+def copy_chapter_to_session(chapter: Chapter, blobs: list[UUID]):
     chapter_path = path.join(str(chapter.manga_id), str(chapter.id))
     for i in range(chapter.length):
         media.copy(path.join(chapter_path, f"{i + 1}.jpg"), path.join("blobs", f"{blobs[i]}.jpg"))
@@ -114,7 +114,7 @@ async def get_upload_session(upload_session: UploadSessionBlobs = Permission("vi
     return upload_session
 
 
-def save_session_image(files: Iterable[Tuple[UUID, str]]):
+def save_session_image(files: Iterable[tuple[UUID, str]]):
     for blob_id, file in files:
         im = Image.open(file)
         with TemporaryFile() as f:
@@ -133,24 +133,24 @@ post_blobs_responses = {
     },
     201: {
         "description": "The created blobs",
-        "model": List[UploadedBlobResponse],
+        "model": list[UploadedBlobResponse],
     },
 }
 
 
 def validate_image_extension(name: str):
     extensions = (".jpeg", ".jpg", ".png", ".bmp", ".webp")
-    return any((name.lower().endswith(ext) for ext in extensions))
+    return any(name.lower().endswith(ext) for ext in extensions)
 
 
 @router.post(
     "/{session_id}",
     status_code=status.HTTP_201_CREATED,
-    response_model=List[UploadedBlobResponse],
+    response_model=list[UploadedBlobResponse],
     responses=post_blobs_responses,
 )
 async def upload_pages_to_upload_session(
-    session: UploadSession = Permission("edit", _get_upload_session), payload: List[UploadFile] = File(...)
+    session: UploadSession = Permission("edit", _get_upload_session), payload: list[UploadFile] = File(...)
 ):
     compressed_formats = (
         "application/x-7z-compressed",
@@ -200,7 +200,7 @@ async def upload_pages_to_upload_session(
     return blobs
 
 
-def delete_session_images(ids: List[UUID]):
+def delete_session_images(ids: list[UUID]):
     media.remove([path.join("blobs", f"{blob_id}.jpg") for blob_id in ids])
 
 
@@ -229,7 +229,7 @@ async def delete_upload_session(
     return "OK"
 
 
-def commit_session_images(chapter: Chapter, pages: List[UUID], edit: bool):
+def commit_session_images(chapter: Chapter, pages: list[UUID], edit: bool):
     chapter_path = path.join(str(chapter.manga_id), str(chapter.id))
 
     if edit:
@@ -369,10 +369,10 @@ async def concat_and_cut_images(blob_ids: Iterable[UUID]):
 
     height = sum(image.height for image in images)
 
-    if not all((images[0].width == image.width for image in images)):
+    if not all(images[0].width == image.width for image in images):
         raise BadRequestHTTPException("All the images should have the same width")
 
-    joined = Image.new('RGB', (images[0].width, height))
+    joined = Image.new("RGB", (images[0].width, height))
     running_height = 0
     for i, image in enumerate(images):
         joined.paste(image, (0, running_height))
@@ -383,7 +383,7 @@ async def concat_and_cut_images(blob_ids: Iterable[UUID]):
     amount_parts = joined.height // (2 * joined.width) + 1
     parts = []
     for i in range(amount_parts):
-        end_y = min(height, 2* joined.width * (i + 1))
+        end_y = min(height, 2 * joined.width * (i + 1))
         part = joined.crop((0, 2 * joined.width * i, joined.width, end_y))
         parts.append(part)
 
@@ -394,7 +394,7 @@ slice_blobs_responses = {
     **auth_responses,
     400: {
         "description": "There is a problem with the provided page order",
-        **BadRequestHTTPException.open_api("Some pages don't belong to this session")
+        **BadRequestHTTPException.open_api("Some pages don't belong to this session"),
     },
     404: {
         "description": "The upload session couldn't be found",
@@ -402,7 +402,7 @@ slice_blobs_responses = {
     },
     201: {
         "description": "The created blobs",
-        "model": List[UploadedBlobResponse],
+        "model": list[UploadedBlobResponse],
     },
 }
 
@@ -410,11 +410,11 @@ slice_blobs_responses = {
 @router.post(
     "/{session_id}/slice",
     status_code=status.HTTP_201_CREATED,
-    response_model=List[UploadedBlobResponse],
+    response_model=list[UploadedBlobResponse],
     responses=slice_blobs_responses,
 )
 async def slice_pages_in_upload_session(
-    payload: List[UUID],
+    payload: list[UUID],
     tasks: BackgroundTasks,
     session=Permission("edit", _get_upload_session_blobs),
 ):

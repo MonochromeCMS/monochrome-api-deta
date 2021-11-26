@@ -1,4 +1,3 @@
 [flake8]
 exclude = api/alembic
 max-line-length = 119
-ignore = W503

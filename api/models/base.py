@@ -1,4 +1,4 @@
-from typing import ClassVar, List, Union, Callable
+from typing import ClassVar, Union, Callable
 from pydantic import BaseModel, Field
 from math import inf
 from contextlib import asynccontextmanager
@@ -52,7 +52,7 @@ class DetaBase(BaseModel):
             self.__dict__.update(new_instance.__dict__)
 
     @staticmethod
-    async def delete_many(instances: List["DetaBase"]):
+    async def delete_many(instances: list["DetaBase"]):
         for instance in instances:
             await instance.delete()
 

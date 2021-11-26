@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     allow_registration: bool = False
 
 
-@lru_cache()
+@lru_cache
 def get_settings():
     log.info("Loading config settings from the environment...")
     return Settings()

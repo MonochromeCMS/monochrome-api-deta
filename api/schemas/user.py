@@ -1,6 +1,6 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from fastapi_camelcase import CamelModel
 from pydantic import Field, EmailStr, BaseModel
@@ -64,7 +64,7 @@ class UserResponse(User):
 
 
 class UsersResponse(PaginationResponse):
-    results: List[UserResponse]
+    results: list[UserResponse]
 
 
 class UserFilters(CamelModel):

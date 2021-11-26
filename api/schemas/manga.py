@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
@@ -72,4 +72,4 @@ class MangaResponse(MangaSchema):
 
 
 class MangaSearchResponse(PaginationResponse):
-    results: List[MangaResponse]
+    results: list[MangaResponse]

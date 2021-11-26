@@ -1,5 +1,5 @@
 from tempfile import TemporaryFile
-from typing import Optional, List
+from typing import Optional
 from .db import deta
 
 
@@ -30,7 +30,7 @@ class Drive:
         self.copy(source, dest)
         self.remove([source])
 
-    def remove(self, names: List[str]):
+    def remove(self, names: list[str]):
         if names:
             return self.drive.delete_many(names)
 

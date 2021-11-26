@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
@@ -74,4 +74,4 @@ class DetailedChapterResponse(ChapterResponse):
 
 
 class LatestChaptersResponse(PaginationResponse):
-    results: List[DetailedChapterResponse]
+    results: list[DetailedChapterResponse]

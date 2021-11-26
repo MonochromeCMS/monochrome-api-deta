@@ -18,7 +18,7 @@ post_responses = {
     **auth_responses,
     400: {
         "description": "The replied comment is not valid",
-        **BadRequestHTTPException.open_api("Comment to reply to not valid")
+        **BadRequestHTTPException.open_api("Comment to reply to not valid"),
     },
     201: {
         "description": "The created comment",

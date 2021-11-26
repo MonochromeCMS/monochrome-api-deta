@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from fastapi_camelcase import CamelModel
@@ -44,7 +44,7 @@ class UploadSessionResponse(UploadSessionSchema):
     id: UUID = Field(
         description="ID of the upload session",
     )
-    blobs: List[UploadedBlobResponse] = Field(
+    blobs: list[UploadedBlobResponse] = Field(
         [],
         description="Images uploaded to the session",
     )
@@ -56,4 +56,4 @@ class UploadSessionResponse(UploadSessionSchema):
 
 class CommitUploadSession(CamelModel):
     chapter_draft: ChapterSchema = Field(description="Details of the chapter")
-    page_order: List[UUID] = Field(description="Order the pages should be uploaded in")
+    page_order: list[UUID] = Field(description="Order the pages should be uploaded in")

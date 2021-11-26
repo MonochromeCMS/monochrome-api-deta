@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from datetime import datetime
 from fastapi_camelcase import CamelModel
@@ -65,4 +65,4 @@ class DetailedCommentResponse(CommentResponse):
 
 
 class ChapterCommentsResponse(PaginationResponse):
-    results: List[DetailedCommentResponse]
+    results: list[DetailedCommentResponse]

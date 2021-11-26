@@ -19,7 +19,7 @@ async def main():
         uuid = uuid4()
 
     if not PROJECT_KEY:
-        raise EnvironmentError("A DETA_PROJECT_KEY is required to add an admin user")
+        raise OSError("A DETA_PROJECT_KEY is required to add an admin user")
 
     hashed_password = bcrypt.hash(PASSWORD)
 

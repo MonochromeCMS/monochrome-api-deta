@@ -1,4 +1,4 @@
-from typing import Optional, ClassVar, List, Union
+from typing import Optional, ClassVar, Union
 from uuid import UUID
 
 from .base import DetaBase
@@ -51,7 +51,7 @@ class UploadSession(DetaBase):
 
 
 class UploadSessionBlobs(UploadSession):
-    blobs: List[UploadedBlob]
+    blobs: list[UploadedBlob]
 
     @classmethod
     async def find(cls, _id: Union[UUID, str], exception=NotFoundHTTPException()):
