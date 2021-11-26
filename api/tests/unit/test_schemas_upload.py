@@ -1,9 +1,8 @@
 from uuid import UUID
 
-from api.tests.unit.utils import BaseModelTest
-from api.tests.unit.test_schemas_chapter import TestChapterSchema
-
 import api.schemas.upload as sch
+from api.tests.unit.test_schemas_chapter import TestChapterSchema
+from api.tests.unit.utils import BaseModelTest
 
 
 class TestUploadSessionSchema(BaseModelTest):

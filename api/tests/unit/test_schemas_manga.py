@@ -1,11 +1,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from api.tests.unit.utils import BaseModelTest
-from api.tests.unit.test_schemas_base import TestPaginationResponse
-
-from api.models.manga import Status
 import api.schemas.manga as sch
+from api.models.manga import Status
+from api.tests.unit.test_schemas_base import TestPaginationResponse
+from api.tests.unit.utils import BaseModelTest
 
 
 class TestMangaSchema(BaseModelTest):

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-from .auth import auth_responses, Permission
 from ..models.settings import Settings
 from ..schemas.settings import SettingsSchema
+from .auth import Permission, auth_responses
 
 router = APIRouter(prefix="/settings", tags=["Settings"])
 

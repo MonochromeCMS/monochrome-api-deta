@@ -1,11 +1,12 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
-from .auth import auth_responses, Permission, get_connected_user
-from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
-from ..models.user import User
-from ..models.comment import Comment
-from ..schemas.comment import CommentSchema, CommentEditSchema, CommentResponse
 
+from fastapi import APIRouter, Depends, status
+
+from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
+from ..models.comment import Comment
+from ..models.user import User
+from ..schemas.comment import CommentEditSchema, CommentResponse, CommentSchema
+from .auth import Permission, auth_responses, get_connected_user
 
 router = APIRouter(prefix="/comment", tags=["Comment"])
 

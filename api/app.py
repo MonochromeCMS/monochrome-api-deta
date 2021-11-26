@@ -1,15 +1,15 @@
 import logging
-
 from os import getenv
-from prometheus_fastapi_instrumentator import Instrumentator
+
 from fastapi import FastAPI, Request
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from .fs import media
-from .exceptions import rate_limit_exceeded_handler
 from .config import get_settings
+from .exceptions import rate_limit_exceeded_handler
+from .fs import media
 from .models.upload import UploadSession
 
 global_settings = get_settings()

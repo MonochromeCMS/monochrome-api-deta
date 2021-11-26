@@ -1,11 +1,12 @@
-from uuid import UUID
 from datetime import datetime
-from pydantic import Field
 from typing import ClassVar, Optional
+from uuid import UUID
 
+from pydantic import Field
+
+from ..fastapi_permissions import Allow, Authenticated, Everyone
 from .base import DetaBase
 from .user import User
-from ..fastapi_permissions import Allow, Everyone, Authenticated
 
 
 class Comment(DetaBase):

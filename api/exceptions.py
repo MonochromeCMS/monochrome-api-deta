@@ -1,8 +1,8 @@
 from typing import Optional
 
-from fastapi import HTTPException, status, Request, Response
-from slowapi.errors import RateLimitExceeded
+from fastapi import HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 
 def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:

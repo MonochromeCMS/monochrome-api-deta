@@ -1,12 +1,12 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
-
-from ..models.manga import Status
-from .base import PaginationResponse
 
 from fastapi_camelcase import CamelModel
 from pydantic import Field
+
+from ..models.manga import Status
+from .base import PaginationResponse
 
 
 class MangaSchema(CamelModel):

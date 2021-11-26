@@ -7,8 +7,8 @@ Framework, so all cudos to them!
 __version__ = "0.2.7"
 
 from functools import partial
-from itertools import chain
 from inspect import iscoroutinefunction
+from itertools import chain
 from typing import Any
 
 from fastapi import Depends, HTTPException, status

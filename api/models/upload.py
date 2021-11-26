@@ -1,9 +1,9 @@
-from typing import Optional, ClassVar, Union
+from typing import ClassVar, Optional, Union
 from uuid import UUID
 
-from .base import DetaBase
-from ..fastapi_permissions import Allow
 from ..exceptions import NotFoundHTTPException
+from ..fastapi_permissions import Allow
+from .base import DetaBase
 
 
 class UploadedBlob(DetaBase):

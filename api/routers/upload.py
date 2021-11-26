@@ -1,27 +1,30 @@
-from typing import Iterable
+from os import listdir, makedirs, path, remove
 from shutil import rmtree
-from os import path, makedirs, remove, listdir
 from tempfile import TemporaryFile
-from aiofiles import open
-from pyunpack import Archive
-from PIL import Image
-
+from typing import Iterable
 from uuid import UUID
-from fastapi import APIRouter, Depends, File, UploadFile, status, BackgroundTasks
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 
-from .auth import is_connected, auth_responses, Permission, get_active_principals
+from aiofiles import open
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, UploadFile,
+                     status)
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from PIL import Image
+from pyunpack import Archive
+
+from ..config import get_settings
+from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..fastapi_permissions import has_permission, permission_exception
 from ..fs import media
-from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
-from ..config import get_settings
-from ..models.user import User
-from ..models.manga import Manga
 from ..models.chapter import Chapter
-from ..models.upload import UploadSession, UploadedBlob, UploadSessionBlobs
+from ..models.manga import Manga
+from ..models.upload import UploadedBlob, UploadSession, UploadSessionBlobs
+from ..models.user import User
 from ..schemas.chapter import ChapterResponse
-from ..schemas.upload import UploadSessionSchema, CommitUploadSession, UploadSessionResponse, UploadedBlobResponse
+from ..schemas.upload import (CommitUploadSession, UploadedBlobResponse,
+                              UploadSessionResponse, UploadSessionSchema)
+from .auth import (Permission, auth_responses, get_active_principals,
+                   is_connected)
 
 global_settings = get_settings()
 

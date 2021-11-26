@@ -1,9 +1,8 @@
 from uuid import UUID
 
-from api.tests.unit.utils import BaseModelTest
-from api.tests.unit.test_schemas_base import TestPaginationResponse
-
 import api.schemas.user as sch
+from api.tests.unit.test_schemas_base import TestPaginationResponse
+from api.tests.unit.utils import BaseModelTest
 
 
 class TestTokenResponse(BaseModelTest):

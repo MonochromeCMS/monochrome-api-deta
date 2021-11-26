@@ -1,9 +1,9 @@
 import asyncio
-
 from os import getenv
+from uuid import uuid4
+
 from deta import Deta
 from passlib.hash import bcrypt
-from uuid import uuid4
 
 
 async def main():

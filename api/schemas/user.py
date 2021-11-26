@@ -1,12 +1,12 @@
-from uuid import UUID
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from fastapi_camelcase import CamelModel
-from pydantic import Field, EmailStr, BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
-from .base import PaginationResponse
 from ..models.user import Role
+from .base import PaginationResponse
 
 
 class TokenContent(CamelModel):

@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from ..models.chapter import Chapter
 
-
 router = APIRouter(prefix="/autocomplete", tags=["Autocomplete"])
 
 

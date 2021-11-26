@@ -1,8 +1,10 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
 from fastapi_camelcase import CamelModel
 from pydantic import Field
+
 from .base import PaginationResponse
 from .user import UserResponse
 

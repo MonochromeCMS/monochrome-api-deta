@@ -7,11 +7,6 @@ name = "pypi"
 # Linting/Formatting
 flake8 = "*"
 black = "*"
-# Testing
-httpx = "*"
-pytest = "*"
-pytest-asyncio = "*"
-pytest-cov = "*"
 # Requirements
 aiofiles = "*"
 pyunpack = "*"
@@ -32,7 +27,14 @@ prometheus-fastapi-instrumentator = "*"
 [dev-packages]
 icecream = "*"
 ipython = "*"
+isort = "*"
 pyupgrade = "*"
+safety = "*"
+# Testing
+httpx = "*"
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.9"

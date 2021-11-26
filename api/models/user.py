@@ -1,10 +1,11 @@
 from enum import Enum
+from typing import ClassVar, Optional, Union
 from uuid import UUID
-from typing import Optional, ClassVar, Union
-from pydantic import EmailStr, BaseModel
 
-from .base import DetaBase
+from pydantic import BaseModel, EmailStr
+
 from ..fastapi_permissions import Allow, Everyone
+from .base import DetaBase
 
 
 class Role(str, Enum):

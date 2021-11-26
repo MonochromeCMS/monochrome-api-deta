@@ -1,12 +1,13 @@
-from uuid import UUID
 from datetime import datetime
-from typing import Optional, ClassVar, Union
+from typing import ClassVar, Optional, Union
+from uuid import UUID
+
 from pydantic import Field
 
-from .base import DetaBase
-from .manga import Manga
 from ..exceptions import NotFoundHTTPException
 from ..fastapi_permissions import Allow, Everyone
+from .base import DetaBase
+from .manga import Manga
 
 
 class ScanGroup(DetaBase):

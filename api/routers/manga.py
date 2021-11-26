@@ -1,22 +1,22 @@
-from PIL import Image
-
-from uuid import UUID
 from os import path
 from tempfile import TemporaryFile
 from typing import Optional
-from fastapi import APIRouter, Depends, status, Query, File, UploadFile
+from uuid import UUID
 
-from .auth import get_connected_user, auth_responses, Permission, get_active_principals
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from PIL import Image
+
+from ..config import get_settings
+from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..fastapi_permissions import has_permission, permission_exception
 from ..fs import media
-from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
-from ..config import get_settings
-from ..models.user import User
 from ..models.chapter import Chapter
 from ..models.manga import Manga
+from ..models.user import User
 from ..schemas.chapter import ChapterResponse
-from ..schemas.manga import MangaSchema, MangaResponse, MangaSearchResponse
-
+from ..schemas.manga import MangaResponse, MangaSchema, MangaSearchResponse
+from .auth import (Permission, auth_responses, get_active_principals,
+                   get_connected_user)
 
 settings = get_settings()
 

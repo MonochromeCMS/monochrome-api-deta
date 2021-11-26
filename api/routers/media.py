@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from ..fs import media
 from ..exceptions import NotFoundHTTPException
+from ..fs import media
 
 router = APIRouter(prefix="/media", tags=["Media"])
 

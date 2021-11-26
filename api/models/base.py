@@ -1,14 +1,16 @@
-from typing import ClassVar, Union, Callable
-from pydantic import BaseModel, Field
-from math import inf
 from contextlib import asynccontextmanager
-from aiohttp import ClientError
+from math import inf
+from typing import Callable, ClassVar, Union
 from uuid import UUID, uuid4
-from fastapi.encoders import jsonable_encoder
 
-from ..db import deta
+from aiohttp import ClientError
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel, Field
+
 from ..config import get_settings
-from ..exceptions import UnprocessableEntityHTTPException, NotFoundHTTPException
+from ..db import deta
+from ..exceptions import (NotFoundHTTPException,
+                          UnprocessableEntityHTTPException)
 
 settings = get_settings()
 

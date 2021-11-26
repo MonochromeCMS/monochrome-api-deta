@@ -1,11 +1,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from api.tests.unit.utils import BaseModelTest
+import api.schemas.chapter as sch
 from api.tests.unit.test_schemas_base import TestPaginationResponse
 from api.tests.unit.test_schemas_manga import TestMangaResponse
-
-import api.schemas.chapter as sch
+from api.tests.unit.utils import BaseModelTest
 
 
 class TestChapterSchema(BaseModelTest):

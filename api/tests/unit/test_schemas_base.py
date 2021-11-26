@@ -1,7 +1,6 @@
-from api.tests.unit.utils import BaseModelTest
-
-from api.config import get_settings
 import api.schemas.base as sch
+from api.config import get_settings
+from api.tests.unit.utils import BaseModelTest
 
 settings = get_settings()
 

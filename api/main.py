@@ -1,11 +1,11 @@
-from .app import app
-from .config import get_settings
-
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from .routers import auth, autocomplete, chapter, comment, manga, media, settings, upload, user
+from .app import app
+from .config import get_settings
+from .routers import (auth, autocomplete, chapter, comment, manga, media,
+                      settings, upload, user)
 
 global_settings = get_settings()
 

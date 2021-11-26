@@ -1,8 +1,8 @@
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 
-from .base import DetaBase
-from ..fastapi_permissions import Allow, Everyone
 from ..config import get_settings
+from ..fastapi_permissions import Allow, Everyone
+from .base import DetaBase
 
 global_settings = get_settings()
 

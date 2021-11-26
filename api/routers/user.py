@@ -2,18 +2,21 @@ from os import path
 from tempfile import TemporaryFile
 from typing import Optional
 from uuid import UUID
-from PIL import Image
 
-from fastapi import APIRouter, Depends, Query, status, Request, File, UploadFile
+from fastapi import (APIRouter, Depends, File, Query, Request, UploadFile,
+                     status)
+from PIL import Image
 
 from ..app import limiter
 from ..config import get_settings
-from ..exceptions import NotFoundHTTPException, BadRequestHTTPException
-from .auth import is_connected, get_password_hash, auth_responses, Permission, get_active_principals
+from ..exceptions import BadRequestHTTPException, NotFoundHTTPException
 from ..fastapi_permissions import has_permission
 from ..fs import media
-from ..models.user import User, Role
-from ..schemas.user import UserSchema, UserResponse, UsersResponse, UserFilters, UserRegisterSchema
+from ..models.user import Role, User
+from ..schemas.user import (UserFilters, UserRegisterSchema, UserResponse,
+                            UserSchema, UsersResponse)
+from .auth import (Permission, auth_responses, get_active_principals,
+                   get_password_hash, is_connected)
 
 settings = get_settings()
 

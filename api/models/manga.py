@@ -1,10 +1,10 @@
 from datetime import datetime
 from enum import Enum
+from typing import ClassVar, Optional
 from uuid import UUID
-from typing import Optional, ClassVar
 
-from .base import DetaBase, Field
 from ..fastapi_permissions import Allow, Everyone
+from .base import DetaBase, Field
 
 
 class Status(str, Enum):
