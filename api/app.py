@@ -16,7 +16,7 @@ global_settings = get_settings()
 
 log = logging.getLogger(__name__)
 
-app = FastAPI(title="Monochrome", version="1.4.3")
+app = FastAPI(title="Monochrome", version="1.5.0")
 
 Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app, tags=["Status"])
 
