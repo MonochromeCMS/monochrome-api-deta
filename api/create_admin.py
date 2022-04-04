@@ -1,9 +1,12 @@
 import asyncio
+from logging import getLogger
 from os import getenv
 from uuid import uuid4
 
 from deta import Deta
 from passlib.hash import bcrypt
+
+logger = getLogger(__name__)
 
 
 async def main():
@@ -52,18 +55,25 @@ async def deta_init():
 
     initialized = await db_init.get("initialized")
 
+    user_id = uuid4()
+
     if initialized:
+        await db_users.close()
+        await db_init.close()
         return
 
+    logger.info("First install, creating default user...")
+    
     await db_init.put({"key":"initialized"})
+    await db_init.close()
 
     user = {
         "username": "admin",
         "email": None,
         "hashed_password": bcrypt.hash("admin"),
         "version": 1,
-        "id": "c603ef4f-08f9-4130-a770-3a34defa44b3",
-        "key": "c603ef4f-08f9-4130-a770-3a34defa44b3",
+        "id": str(user_id),
+        "key": str(user_id),
         "role": "admin",
     }
 

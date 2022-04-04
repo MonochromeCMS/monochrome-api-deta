@@ -15,7 +15,7 @@ RUN apt-get update && \
     pipenv install --system && \
     apt-get remove -y gcc libc-dev && \
     apt-get autoremove -y && \
-    pip uninstall -y setuptools wheel pipenv pip
+    pip uninstall -y setuptools wheel pipenv
     
 
 FROM builder as final
