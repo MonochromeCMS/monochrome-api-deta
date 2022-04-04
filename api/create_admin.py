@@ -40,4 +40,36 @@ async def main():
     await db.close()
 
 
-asyncio.get_event_loop().run_until_complete(main())
+async def deta_init():
+    PROJECT_KEY = getenv("DETA_PROJECT_KEY")
+
+    if not PROJECT_KEY:
+        raise OSError("A DETA_PROJECT_KEY is required to add the default admin user")
+
+    deta = Deta(PROJECT_KEY)
+    db_users = deta.AsyncBase("users")
+    db_init = deta.AsyncBase("init")
+
+    initialized = await db_init.get("initialized")
+
+    if initialized:
+        return
+
+    await db_init.put({"key":"initialized"})
+
+    user = {
+        "username": "admin",
+        "email": None,
+        "hashed_password": bcrypt.hash("admin"),
+        "version": 1,
+        "id": "c603ef4f-08f9-4130-a770-3a34defa44b3",
+        "key": "c603ef4f-08f9-4130-a770-3a34defa44b3",
+        "role": "admin",
+    }
+
+    await db_users.put(user)
+    await db_users.close()
+
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())

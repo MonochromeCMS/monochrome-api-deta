@@ -8,6 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from .config import get_settings
+from .create_admin import deta_init
 from .exceptions import rate_limit_exceeded_handler
 from .fs import media
 from .models.upload import UploadSession
@@ -53,6 +54,7 @@ app.add_middleware(SlowAPIMiddleware)
 @app.on_event("startup")
 async def startup_event():
     log.info("Starting up...")
+    await deta_init()
 
 
 @app.on_event("shutdown")
