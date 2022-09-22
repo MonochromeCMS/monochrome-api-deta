@@ -1,4 +1,7 @@
 # Monochrome
+
+> **WARNING:** This api has been deprecated in favor of (monochrome-api)[https://github.com/MonochromeCMS/monochrome-api] which supports Deta among other database and file storage providers.
+
 Monochrome's API, implemented with Deta Base and Deta Drive.
 
 Create a free account on [Deta](https://deta.sh) to test this out!
